@@ -99,12 +99,18 @@ Ejemplos:
 
 ```mermaid
 erDiagram
+    ROLE {
+        Long id PK
+        String name
+        String description
+    }
+
     USER {
         Long id PK
         String name
         String username
         String password
-        String role
+        Long role_id FK
     }
 
     EXAM {
@@ -128,7 +134,8 @@ erDiagram
         Long exam_id FK
         LocalDateTime startDate
         LocalDateTime endDate
-        String status
+        Integer totalCapacity
+        Integer currentEnrollment
     }
 
     EXAM_ATTEMPT {
@@ -151,6 +158,7 @@ erDiagram
         String reviewComment
     }
 
+    ROLE ||--o{ USER : "tiene"
     USER ||--o{ EXAM : "crea (profesor)"
     EXAM ||--o{ QUESTION : "contiene"
     EXAM ||--o{ EXAM_CALL : "se publica en"

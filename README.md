@@ -49,22 +49,23 @@ Optimizar:
 - Angular 22
 - pnpm
 
-## Ejecucion local (backend)
+## Ejecucion local
+
+Levanta backend y frontend en contenedores para pruebas locales.
 
 ```bash
-cd backend
-mvn clean install
-mvn spring-boot:run
+docker compose up --build
 ```
 
-## Ejecucion local (frontend)
+Servicios disponibles:
 
-Requisito: Node.js `>= 22.22.3`.
+- Frontend: `http://localhost:4200`
+- Backend: `http://localhost:8080`
+
+Para detener y eliminar contenedores:
 
 ```bash
-cd frontend
-pnpm install
-pnpm start
+docker compose down
 ```
 
 ## Flujo de contribucion (Git)

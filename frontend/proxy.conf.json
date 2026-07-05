@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "http://backend:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/h2-console": {
+    "target": "http://backend:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

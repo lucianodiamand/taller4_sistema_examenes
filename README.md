@@ -38,7 +38,7 @@ Optimizar:
 ## Estructura del repositorio
 
 - `backend/`: API Spring Boot (Maven).
-- `frontend/`: aplicacion Angular (a incorporar en siguientes PR).
+- `frontend/`: aplicacion Angular 22 (pnpm).
 
 ## Tecnologias
 
@@ -46,7 +46,8 @@ Optimizar:
 - Spring Boot 4.0.6
 - Maven
 - H2 Database
-- Angular (frontend separado)
+- Angular 22
+- pnpm
 
 ## Ejecucion local (backend)
 
@@ -54,6 +55,16 @@ Optimizar:
 cd backend
 mvn clean install
 mvn spring-boot:run
+```
+
+## Ejecucion local (frontend)
+
+Requisito: Node.js `>= 22.22.3`.
+
+```bash
+cd frontend
+pnpm install
+pnpm start
 ```
 
 ## Flujo de contribucion (Git)

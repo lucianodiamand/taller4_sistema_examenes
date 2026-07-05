@@ -37,8 +37,8 @@ Optimizar:
 
 ## Estructura del repositorio
 
-- `backend/`: API Spring Boot (Maven).
-- `frontend/`: aplicacion Angular 22 (pnpm).
+- `backend/`: API Spring Boot (Maven, servicio `exam-system`).
+- `frontend/`: aplicacion Angular 22 (pnpm, proyecto `exam-system`).
 
 ## Tecnologias
 

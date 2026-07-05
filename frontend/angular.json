@@ -2,11 +2,12 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "pnpm"
+    "packageManager": "pnpm",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
-    "frontend": {
+    "exam-system": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +62,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "frontend:build:production"
+                "buildTarget": "exam-system:build:production"
             },
             "development": {
-              "buildTarget": "frontend:build:development"
+                "buildTarget": "exam-system:build:development"
             }
           },
           "defaultConfiguration": "development"

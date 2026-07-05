@@ -35,6 +35,11 @@ Optimizar:
 - Backend: Java + Spring Boot
 - Base de datos: Relacional (JPA/Hibernate)
 
+## Estructura del repositorio
+
+- `backend/`: API Spring Boot (Maven).
+- `frontend/`: aplicacion Angular (a incorporar en siguientes PR).
+
 ## Tecnologias
 
 - Java 21
@@ -46,6 +51,7 @@ Optimizar:
 ## Ejecucion local (backend)
 
 ```bash
+cd backend
 mvn clean install
 mvn spring-boot:run
 ```

@@ -20,7 +20,9 @@ Optimizar:
 
 ## Alcance funcional (MVP)
 
-- Autenticacion con roles: `PROFESOR` y `ESTUDIANTE`.
+- Autenticacion JWT con roles y permisos (RBAC): `ADMIN`, `PROFESSOR`, `STUDENT`.
+- El administrador gestiona permisos por rol y crea usuarios profesor.
+- Solo el estudiante puede registrarse por API publica.
 - El profesor crea examenes y preguntas.
 - El profesor habilita una convocatoria (fecha/hora de inicio y fin).
 - El estudiante solo puede rendir si la convocatoria esta abierta.
@@ -61,7 +63,26 @@ Servicios disponibles:
 
 - Frontend: `http://localhost:4200`
 - Backend API: `http://localhost:8080/api`
-  - Examenes: `GET /api/exams`, `POST /api/exams`
+  - Auth: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `POST /api/auth/logout-all`
+  - Usuarios/Roles: `GET /api/users/me`, `PATCH /api/users/me`, `POST /api/users/professors`, `GET/PATCH /api/roles/{role}/permissions`
+  - Examenes: `GET /api/exams`, `POST /api/exams`, `POST /api/exam-workflow/calls/{examCallId}/solve`, `PATCH /api/exam-workflow/attempts/{attemptId}/grade`, `GET /api/exam-workflow/my-validations`, `GET /api/exam-workflow/my-results`
+
+Nota:
+
+- Salvo endpoints publicos de auth (`register`, `login`, `refresh`), el resto de `/api/**` requiere token Bearer JWT.
+
+## Configuracion de seguridad y DB
+
+- El backend usa migraciones con Flyway (`backend/src/main/resources/db/migration`).
+- Variables recomendadas para produccion:
+  - `APP_JWT_SECRET`
+  - `APP_JWT_ISSUER`
+  - `APP_JWT_ACCESS_TTL`
+  - `APP_JWT_REFRESH_TTL`
+- En desarrollo se puede usar seed de admin con:
+  - `app.bootstrap.seed-admin=true`
+  - `app.bootstrap.admin-username`
+  - `app.bootstrap.admin-password`
 
 Para detener y eliminar contenedores:
 

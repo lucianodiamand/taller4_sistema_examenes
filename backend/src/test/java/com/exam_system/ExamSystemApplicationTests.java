@@ -11,7 +11,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ExamSystemApplicationTests {
@@ -20,7 +19,7 @@ class ExamSystemApplicationTests {
 	private int port;
 
 	@Test
-	void examsEndpointIsPublicJson() throws IOException, InterruptedException {
+	void protectedEndpointWithoutTokenReturnsUnauthorized() throws IOException, InterruptedException {
 		HttpClient client = HttpClient.newHttpClient();
 		HttpRequest request = HttpRequest.newBuilder()
 				.uri(URI.create("http://localhost:" + port + "/api/exams"))
@@ -29,8 +28,7 @@ class ExamSystemApplicationTests {
 
 		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-		assertEquals(200, response.statusCode());
-		assertTrue(response.headers().firstValue("content-type").orElse("").contains("application/json"));
+		assertEquals(401, response.statusCode());
 	}
 
 }

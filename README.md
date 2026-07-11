@@ -60,7 +60,8 @@ docker compose up --build
 Servicios disponibles:
 
 - Frontend: `http://localhost:4200`
-- Backend: `http://localhost:8080`
+- Backend API: `http://localhost:8080/api`
+  - Examenes: `GET /api/exams`, `POST /api/exams`
 
 Para detener y eliminar contenedores:
 

@@ -83,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails.getAuthorities()
         );
         authentication.setDetails(new AuthenticatedUser(
-                Long.parseLong(claims.getSubject()),
+                Long.valueOf(claims.getSubject()),
                 username,
                 claims.get("role", String.class)
         ));

@@ -8,9 +8,11 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
+  flyway:
+    enabled: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -20,3 +22,13 @@ app:
   cors:
     allowed-origins:
       - http://localhost:4200
+  jwt:
+    issuer: exam-system
+    secret: ${APP_JWT_SECRET:VGhpc0lzQURldk9ubHlTZWNyZXRLZXlGb3JKV1QzMl9CeXRlc19NaW5pbXVtISE=}
+    access-ttl: 15m
+    refresh-ttl: 7d
+  bootstrap:
+    seed-admin: true
+    admin-username: admin
+    admin-password: admin123
+    admin-name: System Admin

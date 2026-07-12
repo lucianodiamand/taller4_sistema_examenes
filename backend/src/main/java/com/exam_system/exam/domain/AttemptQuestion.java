@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "attempt_questions")
-@Data
+@Getter
+@Setter
 public class AttemptQuestion {
 
     @Id
@@ -39,60 +41,4 @@ public class AttemptQuestion {
 
     @Column(columnDefinition = "TEXT")
     private String reviewComment;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public ExamAttempt getAttempt() {
-        return attempt;
-    }
-
-    public void setAttempt(ExamAttempt attempt) {
-        this.attempt = attempt;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(Question question) {
-        this.question = question;
-    }
-
-    public Integer getQuestionOrder() {
-        return questionOrder;
-    }
-
-    public void setQuestionOrder(Integer questionOrder) {
-        this.questionOrder = questionOrder;
-    }
-
-    public String getAnswerText() {
-        return answerText;
-    }
-
-    public void setAnswerText(String answerText) {
-        this.answerText = answerText;
-    }
-
-    public BigDecimal getAwardedScore() {
-        return awardedScore;
-    }
-
-    public void setAwardedScore(BigDecimal awardedScore) {
-        this.awardedScore = awardedScore;
-    }
-
-    public String getReviewComment() {
-        return reviewComment;
-    }
-
-    public void setReviewComment(String reviewComment) {
-        this.reviewComment = reviewComment;
-    }
 }

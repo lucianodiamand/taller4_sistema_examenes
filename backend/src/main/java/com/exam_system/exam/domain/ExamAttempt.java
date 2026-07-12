@@ -4,7 +4,8 @@ import com.exam_system.user.domain.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +20,8 @@ import java.util.List;
                 columnNames = {"exam_call_id", "student_id"}
         )
 )
-@Data
+@Getter
+@Setter
 public class ExamAttempt {
 
     @Id
@@ -50,68 +52,4 @@ public class ExamAttempt {
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("questionOrder ASC")
     private List<AttemptQuestion> questions = new ArrayList<>();
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public ExamCall getExamCall() {
-        return examCall;
-    }
-
-    public void setExamCall(ExamCall examCall) {
-        this.examCall = examCall;
-    }
-
-    public User getStudent() {
-        return student;
-    }
-
-    public void setStudent(User student) {
-        this.student = student;
-    }
-
-    public LocalDateTime getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public LocalDateTime getSubmittedAt() {
-        return submittedAt;
-    }
-
-    public void setSubmittedAt(LocalDateTime submittedAt) {
-        this.submittedAt = submittedAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public BigDecimal getFinalScore() {
-        return finalScore;
-    }
-
-    public void setFinalScore(BigDecimal finalScore) {
-        this.finalScore = finalScore;
-    }
-
-    public List<AttemptQuestion> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(List<AttemptQuestion> questions) {
-        this.questions = questions;
-    }
 }

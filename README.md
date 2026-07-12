@@ -66,10 +66,13 @@ Servicios disponibles:
   - Auth: `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`, `POST /api/auth/logout-all`
   - Usuarios/Roles: `GET /api/users/me`, `PATCH /api/users/me`, `POST /api/users/professors`, `GET/PATCH /api/roles/{role}/permissions`
   - Examenes: `GET /api/exams`, `POST /api/exams`, `POST /api/exam-workflow/calls/{examCallId}/solve`, `PATCH /api/exam-workflow/attempts/{attemptId}/grade`, `GET /api/exam-workflow/my-validations`, `GET /api/exam-workflow/my-results`
+  - OpenAPI JSON (dev): `http://localhost:8080/v3/api-docs`
+  - Swagger UI (dev): `http://localhost:8080/swagger-ui.html`
 
 Nota:
 
 - Salvo endpoints publicos de auth (`register`, `login`, `refresh`), el resto de `/api/**` requiere token Bearer JWT.
+- Swagger/OpenAPI esta habilitado en `dev` y deshabilitado en `prod` por configuracion (`springdoc.api-docs.enabled`, `springdoc.swagger-ui.enabled`).
 
 ## Configuracion de seguridad y DB
 

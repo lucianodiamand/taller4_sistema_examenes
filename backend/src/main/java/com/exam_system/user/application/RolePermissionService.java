@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class RolePermissionService {
@@ -27,7 +28,9 @@ public class RolePermissionService {
     public Set<String> getPermissions(String roleName) {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        return role.getPermissions().stream().map(Permission::getCode).collect(LinkedHashSet::new, Set::add, Set::addAll);
+        return role.getPermissions().stream()
+                .map(Permission::getCode)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional
@@ -41,6 +44,8 @@ public class RolePermissionService {
         role.getPermissions().clear();
         role.getPermissions().addAll(permissions);
         roleRepository.save(role);
-        return role.getPermissions().stream().map(Permission::getCode).collect(LinkedHashSet::new, Set::add, Set::addAll);
+        return role.getPermissions().stream()
+                .map(Permission::getCode)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

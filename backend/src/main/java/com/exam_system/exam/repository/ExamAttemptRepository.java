@@ -3,6 +3,8 @@ package com.exam_system.exam.repository;
 import com.exam_system.exam.domain.ExamAttempt;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,16 +13,19 @@ import java.util.Optional;
 public interface ExamAttemptRepository extends JpaRepository<ExamAttempt, Long> {
 
     // Profesor: todas las resoluciones de los exámenes que le pertenecen
-    List<ExamAttempt> findByExamCall_Exam_ProfessorId(Long professorId);
+    @Query("SELECT ea FROM ExamAttempt ea WHERE ea.examCall.exam.professor.id = :professorId")
+    List<ExamAttempt> findAllByProfessorId(@Param("professorId") Long professorId);
 
     // Profesor: resoluciones de un examen específico, verificando que sea suyo
-    List<ExamAttempt> findByExamCall_Exam_IdAndExamCall_Exam_ProfessorId(Long examId, Long professorId);
+    @Query("SELECT ea FROM ExamAttempt ea WHERE ea.examCall.exam.id = :examId AND ea.examCall.exam.professor.id = :professorId")
+    List<ExamAttempt> findAllByExamIdAndProfessorId(@Param("examId") Long examId, @Param("professorId") Long professorId);
 
     /**
      * Intento puntual verificando que pertenezca a uno de los exámenes del profesor.
      * Si el intento corresponde a otro profesor, se comporta como inexistente (404, no 403).
      */
-    Optional<ExamAttempt> findByIdAndExamCall_Exam_ProfessorId(Long attemptId, Long professorId);
+    @Query("SELECT ea FROM ExamAttempt ea WHERE ea.id = :attemptId AND ea.examCall.exam.professor.id = :professorId")
+    Optional<ExamAttempt> findByIdAndProfessorId(@Param("attemptId") Long attemptId, @Param("professorId") Long professorId);
 
     /**
      * Todas las resoluciones del estudiante, ordenadas de más reciente a más antigua.

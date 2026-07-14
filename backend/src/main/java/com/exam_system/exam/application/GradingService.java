@@ -27,17 +27,17 @@ public class GradingService {
 
     @Transactional(readOnly = true)
     public List<ExamAttempt> getAttemptsForProfessor(Long professorId) {
-        return examAttemptRepository.findByExamCall_Exam_ProfessorId(professorId);
+        return examAttemptRepository.findAllByProfessorId(professorId);
     }
 
     @Transactional(readOnly = true)
     public List<ExamAttempt> getAttemptsForExam(Long examId, Long professorId) {
-        return examAttemptRepository.findByExamCall_Exam_IdAndExamCall_Exam_ProfessorId(examId, professorId);
+        return examAttemptRepository.findAllByExamIdAndProfessorId(examId, professorId);
     }
 
     @Transactional(readOnly = true)
     public ExamAttempt getAttemptForProfessor(Long attemptId, Long professorId) {
-        return examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
+        return examAttemptRepository.findByIdAndProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "La resolución no existe o no pertenece a tus exámenes"));
     }
@@ -52,7 +52,7 @@ public class GradingService {
                                          BigDecimal score,
                                          String comment,
                                          Long professorId) {
-        ExamAttempt attempt = examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
+        ExamAttempt attempt = examAttemptRepository.findByIdAndProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "La resolución no existe o no pertenece a tus exámenes"));
 
@@ -81,7 +81,7 @@ public class GradingService {
      */
     @Transactional
     public ExamAttempt closeGrading(Long attemptId, Long professorId) {
-        ExamAttempt attempt = examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
+        ExamAttempt attempt = examAttemptRepository.findByIdAndProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "La resolución no existe o no pertenece a tus exámenes"));
 

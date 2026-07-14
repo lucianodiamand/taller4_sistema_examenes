@@ -7,6 +7,12 @@
       "skillPath": "skills/angular-best-practices/SKILL.md",
       "computedHash": "8a0f0f438f5fc7ec25cae5b336f587156089e03f1cb9de436bc323e9f11e1416"
     },
+    "angular-tooling": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-tooling/SKILL.md",
+      "computedHash": "2a67063279e8ac1b5cf3d9c4e9ed4652508564640c1fc59642857d4f6d20db11"
+    },
     "java-springboot": {
       "source": "github/awesome-copilot",
       "sourceType": "github",

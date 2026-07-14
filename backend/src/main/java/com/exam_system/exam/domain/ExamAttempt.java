@@ -4,7 +4,8 @@ import com.exam_system.user.domain.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +20,8 @@ import java.util.List;
                 columnNames = {"exam_call_id", "student_id"}
         )
 )
-@Data
+@Getter
+@Setter
 public class ExamAttempt {
 
     @Id

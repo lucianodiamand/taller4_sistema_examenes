@@ -1,5 +1,6 @@
 package com.exam_system.exam.api;
 
+import com.exam_system.auth.security.JwtAuthenticationFilter;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
 import com.exam_system.user.domain.User;
@@ -9,6 +10,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,7 +33,11 @@ class ExamControllerWebMvcTest {
     @MockitoBean
     private ExamService examService;
 
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Test
+    @WithMockUser(authorities = "users.read.self")
     void getExamsReturnsJsonList() throws Exception {
         User professor = new User();
         professor.setId(77L);
@@ -51,6 +57,7 @@ class ExamControllerWebMvcTest {
     }
 
     @Test
+    @WithMockUser(authorities = "exams.create")
     void postExamValidationReturnsBadRequestShape() throws Exception {
         String payload = """
                 {

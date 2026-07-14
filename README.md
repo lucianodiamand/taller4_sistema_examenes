@@ -51,5 +51,6 @@ Tipos comunes de commit: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`.
 ## Links
 
 - Backend docs: `backend/docs/README.md`
+- Backend auth JWT spec: `backend/docs/backend-auth-jwt.spec.md`
 - Frontend docs: `frontend/docs/README.md`
 - Frontend auth JWT spec: `frontend/docs/front-auth-jwt.spec.md`

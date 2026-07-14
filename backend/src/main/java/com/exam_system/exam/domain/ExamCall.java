@@ -1,12 +1,14 @@
 package com.exam_system.exam.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "exam_calls")
-@Data
+@Getter
+@Setter
 public class ExamCall {
 
     @Id

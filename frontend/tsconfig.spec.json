@@ -4,12 +4,19 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    // ponytail: one alias for app code in tests; add more only when repeated pain appears
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": [
+        "src/app/*"
+      ]
+    },
     "types": [
       "vitest/globals"
     ]
   },
   "include": [
     "src/**/*.d.ts",
-    "src/**/*.spec.ts"
+    "tests/**/*.spec.ts"
   ]
 }

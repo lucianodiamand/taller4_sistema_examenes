@@ -1,0 +1,37 @@
+<main class="auth-shell">
+  <mat-card class="auth-card" appearance="outlined">
+    <h1>Create account</h1>
+    <p>Student account registration.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput type="text" formControlName="name" autocomplete="name" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Username</mat-label>
+        <input matInput type="text" formControlName="username" autocomplete="username" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="new-password" />
+      </mat-form-field>
+
+      @if (formError(); as message) {
+        <div class="error" role="alert">{{ message }}</div>
+      }
+
+      <button mat-flat-button type="submit" [disabled]="busy()">
+        @if (busy()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          <span>Create account</span>
+        }
+      </button>
+    </form>
+
+    <a [routerLink]="routes.login">Already have account? Sign in</a>
+  </mat-card>
+</main>

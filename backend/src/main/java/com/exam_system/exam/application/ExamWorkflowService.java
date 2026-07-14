@@ -1,70 +1,50 @@
 package com.exam_system.exam.application;
 
 import com.exam_system.auth.security.CurrentUser;
-import com.exam_system.exam.domain.AttemptQuestion;
+import com.exam_system.exam.domain.AttemptStatus;
 import com.exam_system.exam.domain.ExamAttempt;
-import com.exam_system.exam.domain.ExamCall;
 import com.exam_system.exam.repository.ExamAttemptRepository;
-import com.exam_system.exam.repository.ExamCallRepository;
-import com.exam_system.user.domain.User;
-import com.exam_system.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class ExamWorkflowService {
 
-    private final ExamCallRepository examCallRepository;
     private final ExamAttemptRepository examAttemptRepository;
-    private final UserRepository userRepository;
     private final CurrentUser currentUser;
+    private final StudentExamService studentExamService;
 
-    public ExamWorkflowService(ExamCallRepository examCallRepository,
-                               ExamAttemptRepository examAttemptRepository,
-                               UserRepository userRepository,
-                               CurrentUser currentUser) {
-        this.examCallRepository = examCallRepository;
+    public ExamWorkflowService(ExamAttemptRepository examAttemptRepository,
+                               CurrentUser currentUser,
+                               StudentExamService studentExamService) {
         this.examAttemptRepository = examAttemptRepository;
-        this.userRepository = userRepository;
         this.currentUser = currentUser;
+        this.studentExamService = studentExamService;
     }
 
+    /**
+     * Mantiene compatible el endpoint anterior, pero usa el mismo flujo seguro
+     * que los endpoints nuevos del estudiante.
+     */
     @Transactional
     public ExamAttempt solve(Long examCallId, List<AnswerInput> answers) {
-        Long studentId = currentUser.id();
-        User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+        var startedAttempt = studentExamService.startAttempt(examCallId);
+        List<StudentExamService.AnswerCommand> commands = answers == null
+                ? List.of()
+                : answers.stream()
+                .map(answer -> new StudentExamService.AnswerCommand(
+                        answer.attemptQuestionId(),
+                        answer.answerText()
+                ))
+                .toList();
 
-        ExamCall examCall = examCallRepository.findById(examCallId)
-                .orElseThrow(() -> new EntityNotFoundException("Exam call not found"));
-
-        ExamAttempt attempt = examAttemptRepository.findByExamCallIdAndStudentId(examCallId, studentId)
-                .orElseGet(() -> {
-                    ExamAttempt created = new ExamAttempt();
-                    created.setExamCall(examCall);
-                    created.setStudent(student);
-                    created.setStartedAt(LocalDateTime.now());
-                    return created;
-                });
-
-        if (answers != null) {
-            for (AnswerInput answer : answers) {
-                for (AttemptQuestion question : attempt.getQuestions()) {
-                    if (question.getId() != null && question.getId().equals(answer.attemptQuestionId())) {
-                        question.setAnswerText(answer.answerText());
-                    }
-                }
-            }
-        }
-
-        attempt.setStatus("SUBMITTED");
-        attempt.setSubmittedAt(LocalDateTime.now());
-        return examAttemptRepository.save(attempt);
+        studentExamService.submitAttempt(startedAttempt.attemptId(), commands);
+        return examAttemptRepository.findById(startedAttempt.attemptId())
+                .orElseThrow(() -> new EntityNotFoundException("Resolución no encontrada"));
     }
 
     @Transactional
@@ -72,7 +52,7 @@ public class ExamWorkflowService {
         ExamAttempt attempt = examAttemptRepository.findById(attemptId)
                 .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
         attempt.setFinalScore(input.finalScore());
-        attempt.setStatus("GRADED");
+        attempt.setStatus(AttemptStatus.GRADED);
         return examAttemptRepository.save(attempt);
     }
 
@@ -80,12 +60,13 @@ public class ExamWorkflowService {
     public List<ValidationCommentView> myValidations() {
         Long studentId = currentUser.id();
         return examAttemptRepository.findByStudentId(studentId).stream()
-                .flatMap(a -> a.getQuestions().stream()
-                        .filter(q -> q.getReviewComment() != null && !q.getReviewComment().isBlank())
-                        .map(q -> new ValidationCommentView(
-                                a.getId(),
-                                q.getId(),
-                                q.getReviewComment()
+                .flatMap(attempt -> attempt.getQuestions().stream()
+                        .filter(question -> question.getReviewComment() != null
+                                && !question.getReviewComment().isBlank())
+                        .map(question -> new ValidationCommentView(
+                                attempt.getId(),
+                                question.getId(),
+                                question.getReviewComment()
                         )))
                 .toList();
     }
@@ -94,7 +75,11 @@ public class ExamWorkflowService {
     public List<ResultView> myResults() {
         Long studentId = currentUser.id();
         return examAttemptRepository.findByStudentId(studentId).stream()
-                .map(a -> new ResultView(a.getId(), a.getStatus(), a.getFinalScore()))
+                .map(attempt -> new ResultView(
+                        attempt.getId(),
+                        attempt.getStatus().name(),
+                        attempt.getFinalScore()
+                ))
                 .toList();
     }
 

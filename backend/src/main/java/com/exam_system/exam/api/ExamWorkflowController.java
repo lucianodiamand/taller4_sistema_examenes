@@ -30,15 +30,17 @@ public class ExamWorkflowController {
     }
 
     @PostMapping("/calls/{examCallId}/solve")
-    @PreAuthorize("hasAuthority('exams.solve')")
+    @PreAuthorize("hasRole('STUDENT') and hasAuthority('exams.solve')")
     public AttemptResponse solve(@PathVariable Long examCallId,
                                  @RequestBody(required = false) SolveAttemptRequest request) {
-        List<AnswerInput> answers = request == null ? List.of() : request.answers().stream()
+        List<AnswerInput> answers = request == null || request.answers() == null
+                ? List.of()
+                : request.answers().stream()
                 .map(a -> new AnswerInput(a.attemptQuestionId(), a.answerText()))
                 .toList();
 
         var attempt = examWorkflowService.solve(examCallId, answers);
-        return new AttemptResponse(attempt.getId(), attempt.getStatus(), attempt.getFinalScore());
+        return new AttemptResponse(attempt.getId(), attempt.getStatus().name(), attempt.getFinalScore());
     }
 
     @PatchMapping("/attempts/{attemptId}/grade")
@@ -46,7 +48,7 @@ public class ExamWorkflowController {
     public AttemptResponse grade(@PathVariable Long attemptId,
                                  @Valid @RequestBody GradeAttemptRequest request) {
         var attempt = examWorkflowService.grade(attemptId, new GradeAttemptInput(request.finalScore()));
-        return new AttemptResponse(attempt.getId(), attempt.getStatus(), attempt.getFinalScore());
+        return new AttemptResponse(attempt.getId(), attempt.getStatus().name(), attempt.getFinalScore());
     }
 
     @GetMapping("/my-validations")

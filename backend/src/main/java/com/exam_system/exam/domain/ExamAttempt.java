@@ -43,8 +43,9 @@ public class ExamAttempt {
 
     private LocalDateTime submittedAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private String status = "IN_PROGRESS";
+    private AttemptStatus status = AttemptStatus.IN_PROGRESS;
 
     @DecimalMin(value = "0.0", message = "La nota final no puede ser negativa")
     private BigDecimal finalScore;

@@ -1,23 +1,8 @@
 # Frontend - Sistema de Examenes
 
-Aplicacion Angular del proyecto `exam-system`.
+Indice corto del frontend.
 
-## Requisitos
-
-- Node.js `>= 22.22.3`
-- pnpm `>= 11`
-
-## Ejecucion local
-
-```bash
-pnpm install
-pnpm start
-```
-
-Abrir `http://localhost:4200`.
-
-## Build
-
-```bash
-pnpm build
-```
+- Setup local: `frontend/docs/local-setup.md`
+- Flujo de auth: `frontend/docs/auth-flow.md`
+- Testing: `frontend/docs/testing-notes.md`
+- Spec JWT completo: `frontend/docs/front-auth-jwt.spec.md`

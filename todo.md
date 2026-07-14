@@ -40,10 +40,12 @@
 
 ### Integrante 3 - Resolver examen (estudiante) | 👤 **EMA**
 
-- Backend:
-  - Endpoints para listar examenes disponibles y enviar resolucion.
-  - Persistencia de respuestas por estudiante y examen.
-  - Regla: evitar que un estudiante vea/envi e resoluciones de otros.
+- Backend: ✅
+  - [x] Endpoints para listar examenes disponibles, iniciar/continuar un intento y enviar la resolucion.
+  - [x] Persistencia de respuestas parciales y finales por estudiante y examen.
+  - [x] Historial propio con estados `IN_PROGRESS`, `SUBMITTED` y `GRADED`.
+  - [x] Regla de seguridad: el estudiante solo puede consultar y modificar sus propias resoluciones.
+  - [x] Validaciones de ventana horaria, duracion, cupo e intento unico.
 - Frontend:
   - Pantalla de listado de examenes disponibles para estudiante.
   - Flujo de resolucion y envio.

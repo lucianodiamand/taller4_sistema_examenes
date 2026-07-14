@@ -1,7 +1,7 @@
 # Create Exam Use Case - Specification
 
 ## Overview
-Describe the high-level purpose and business value of this use case.
+Describe high-level purpose and business value of this use case.
 
 ## Actor(s)
 - **Primary Actor**: (Who initiates this use case?)
@@ -40,7 +40,7 @@ Then [Error is handled appropriately]
 ```
 
 **Expected Error:**
-- Error Type: 
+- Error Type:
 - Error Message:
 - Status Code:
 
@@ -65,7 +65,7 @@ Then [System handles gracefully]
 ---
 
 ## Postconditions
-- What is the state after this use case completes successfully?
+- What is state after this use case completes successfully?
 - What data has been created/modified?
 
 ## Implementation Notes
@@ -89,7 +89,7 @@ Response (200):
 
 ### Database Schema/Model Changes
 - Model: `Exam`
-- New Fields: 
+- New Fields:
 - Modified Fields:
 - Relationships:
 

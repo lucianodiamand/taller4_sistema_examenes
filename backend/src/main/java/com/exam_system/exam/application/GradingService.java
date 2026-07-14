@@ -1,6 +1,7 @@
 package com.exam_system.exam.application;
 
 import com.exam_system.exam.domain.AttemptQuestion;
+import com.exam_system.exam.domain.AttemptStatus;
 import com.exam_system.exam.domain.ExamAttempt;
 import com.exam_system.exam.repository.ExamAttemptRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,9 +12,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Handles grading logic: professors can correct submitted attempts
- * that belong to their own exams, and students can view their own results.
- * All visibility rules are enforced here.
+ * Centraliza la lógica de corrección de exámenes.
+ * El profesor solo puede ver y corregir resoluciones de sus propios exámenes.
+ * El estudiante solo puede ver sus propias resoluciones.
  */
 @Service
 public class GradingService {
@@ -24,50 +25,26 @@ public class GradingService {
         this.examAttemptRepository = examAttemptRepository;
     }
 
-    // -------------------------------------------------------------------------
-    // Professor views
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns all submitted/graded attempts for ALL exams belonging to the given professor.
-     */
     @Transactional(readOnly = true)
     public List<ExamAttempt> getAttemptsForProfessor(Long professorId) {
         return examAttemptRepository.findByExamCall_Exam_ProfessorId(professorId);
     }
 
-    /**
-     * Returns submitted/graded attempts for a SPECIFIC exam, ensuring it belongs to the professor.
-     */
     @Transactional(readOnly = true)
     public List<ExamAttempt> getAttemptsForExam(Long examId, Long professorId) {
         return examAttemptRepository.findByExamCall_Exam_IdAndExamCall_Exam_ProfessorId(examId, professorId);
     }
 
-    /**
-     * Returns a single attempt, enforcing that it belongs to one of the professor's exams.
-     */
     @Transactional(readOnly = true)
     public ExamAttempt getAttemptForProfessor(Long attemptId, Long professorId) {
         return examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Attempt not found or does not belong to your exams"));
+                        "La resolución no existe o no pertenece a tus exámenes"));
     }
 
-    // -------------------------------------------------------------------------
-    // Grading
-    // -------------------------------------------------------------------------
-
     /**
-     * Grades a single question within an attempt. Validates that the attempt belongs
-     * to the professor and that the attempt is in SUBMITTED state.
-     *
-     * @param attemptId   the attempt to grade
-     * @param questionId  the AttemptQuestion id
-     * @param score       score awarded to this question (>= 0)
-     * @param comment     optional review comment / feedback
-     * @param professorId the authenticated professor's id (ownership check)
-     * @return the updated AttemptQuestion
+     * Califica una pregunta individual dentro de una resolución.
+     * Valida que la resolución sea del profesor y que esté en estado SUBMITTED.
      */
     @Transactional
     public AttemptQuestion gradeQuestion(Long attemptId,
@@ -77,17 +54,17 @@ public class GradingService {
                                          Long professorId) {
         ExamAttempt attempt = examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Attempt not found or does not belong to your exams"));
+                        "La resolución no existe o no pertenece a tus exámenes"));
 
-        if (!"SUBMITTED".equals(attempt.getStatus())) {
+        if (attempt.getStatus() != AttemptStatus.SUBMITTED) {
             throw new IllegalStateException(
-                    "Only SUBMITTED attempts can be graded (current status: " + attempt.getStatus() + ")");
+                    "Solo se pueden corregir resoluciones en estado SUBMITTED (estado actual: " + attempt.getStatus() + ")");
         }
 
         AttemptQuestion attemptQuestion = attempt.getQuestions().stream()
                 .filter(q -> q.getId().equals(questionId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Question not found in this attempt"));
+                .orElseThrow(() -> new EntityNotFoundException("La pregunta no existe en esta resolución"));
 
         attemptQuestion.setAwardedScore(score);
         if (comment != null && !comment.isBlank()) {
@@ -99,22 +76,18 @@ public class GradingService {
     }
 
     /**
-     * Closes grading for an attempt: computes finalScore as the sum of all awardedScores,
-     * sets status to GRADED. Validates ownership.
-     *
-     * @param attemptId   the attempt to close
-     * @param professorId the authenticated professor's id (ownership check)
-     * @return the updated ExamAttempt
+     * Cierra la corrección de una resolución: calcula el puntaje final como la suma
+     * de los puntajes asignados a cada pregunta y pasa el estado a GRADED.
      */
     @Transactional
     public ExamAttempt closeGrading(Long attemptId, Long professorId) {
         ExamAttempt attempt = examAttemptRepository.findByIdAndExamCall_Exam_ProfessorId(attemptId, professorId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Attempt not found or does not belong to your exams"));
+                        "La resolución no existe o no pertenece a tus exámenes"));
 
-        if (!"SUBMITTED".equals(attempt.getStatus())) {
+        if (attempt.getStatus() != AttemptStatus.SUBMITTED) {
             throw new IllegalStateException(
-                    "Only SUBMITTED attempts can be closed for grading");
+                    "Solo se pueden cerrar resoluciones en estado SUBMITTED");
         }
 
         BigDecimal finalScore = attempt.getQuestions().stream()
@@ -122,29 +95,19 @@ public class GradingService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         attempt.setFinalScore(finalScore);
-        attempt.setStatus("GRADED");
+        attempt.setStatus(AttemptStatus.GRADED);
         return examAttemptRepository.save(attempt);
     }
 
-    // -------------------------------------------------------------------------
-    // Student views
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns all attempts (with results) for the given student. Only their own attempts.
-     */
     @Transactional(readOnly = true)
     public List<ExamAttempt> getResultsForStudent(Long studentId) {
-        return examAttemptRepository.findByStudentId(studentId);
+        return examAttemptRepository.findByStudentIdOrderByStartedAtDesc(studentId);
     }
 
-    /**
-     * Returns a single attempt result, ensuring it belongs to the student.
-     */
     @Transactional(readOnly = true)
     public ExamAttempt getResultForStudent(Long attemptId, Long studentId) {
         return examAttemptRepository.findByIdAndStudentId(attemptId, studentId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Attempt not found or does not belong to you"));
+                        "La resolución no existe o no te pertenece"));
     }
 }

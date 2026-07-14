@@ -2,6 +2,7 @@ package com.exam_system.exam.api;
 
 import com.exam_system.exam.application.GradingService;
 import com.exam_system.exam.domain.AttemptQuestion;
+import com.exam_system.exam.domain.AttemptStatus;
 import com.exam_system.exam.domain.ExamAttempt;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
@@ -22,21 +23,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * REST endpoints for grading and history.
+ * Endpoints de corrección e historial de exámenes.
  *
- * Professor endpoints (requires exams.grade permission when auth is integrated):
- *   GET  /api/grading/attempts?professorId={id}          → all attempts for professor's exams
- *   GET  /api/grading/exams/{examId}/attempts?professorId → attempts for a specific exam
- *   GET  /api/grading/attempts/{attemptId}?professorId    → single attempt detail
- *   PATCH /api/grading/attempts/{attemptId}/questions/{qId} → grade one question
- *   POST  /api/grading/attempts/{attemptId}/close?professorId → compute finalScore + set GRADED
+ * Profesor (requiere permiso exams.grade cuando se integre el JWT):
+ *   GET  /api/grading/attempts?professorId=             → todas las resoluciones de mis exámenes
+ *   GET  /api/grading/exams/{examId}/attempts?professorId= → resoluciones de un examen específico
+ *   GET  /api/grading/attempts/{attemptId}?professorId= → detalle de una resolución
+ *   PATCH /api/grading/attempts/{attemptId}/questions/{qId} → calificar una pregunta
+ *   POST  /api/grading/attempts/{attemptId}/close?professorId= → cerrar corrección y calcular nota
  *
- * Student endpoints (requires exam.results.read.self when auth is integrated):
- *   GET  /api/grading/my-results?studentId={id}          → all attempts with results
- *   GET  /api/grading/my-results/{attemptId}?studentId   → single result detail
+ * Estudiante (requiere permiso exam.results.read.self cuando se integre el JWT):
+ *   GET  /api/grading/my-results?studentId=             → mis resoluciones con resultados
+ *   GET  /api/grading/my-results/{attemptId}?studentId= → detalle de una resolución propia
  *
- * TODO: Replace ?professorId / ?studentId query params with JWT principal once
- *       feat/back-auth-jwt is merged. Use @CurrentUser annotation from auth module.
+ * TODO: reemplazar los query params professorId/studentId por @CurrentUser del JWT
+ *       una vez que se mergee feat/back-auth-jwt.
  */
 @RestController
 @RequestMapping("/api/grading")
@@ -47,10 +48,6 @@ public class GradingController {
     public GradingController(GradingService gradingService) {
         this.gradingService = gradingService;
     }
-
-    // =========================================================================
-    // Professor — views
-    // =========================================================================
 
     @GetMapping("/attempts")
     public List<AttemptSummaryResponse> getAttemptsForProfessor(
@@ -79,10 +76,6 @@ public class GradingController {
         return AttemptDetailResponse.from(attempt);
     }
 
-    // =========================================================================
-    // Professor — grading actions
-    // =========================================================================
-
     @PatchMapping("/attempts/{attemptId}/questions/{questionId}")
     public QuestionGradeResponse gradeQuestion(
             @PathVariable Long attemptId,
@@ -103,10 +96,6 @@ public class GradingController {
         return AttemptSummaryResponse.from(attempt);
     }
 
-    // =========================================================================
-    // Student — result views
-    // =========================================================================
-
     @GetMapping("/my-results")
     public List<StudentResultResponse> getMyResults(
             @RequestParam @NotNull Long studentId) {
@@ -124,13 +113,9 @@ public class GradingController {
         return AttemptDetailResponse.from(attempt);
     }
 
-    // =========================================================================
-    // Records (DTOs)
-    // =========================================================================
-
     public record GradeQuestionRequest(
-            @NotNull(message = "awardedScore is required")
-            @DecimalMin(value = "0.0", message = "Score must be non-negative")
+            @NotNull(message = "El puntaje asignado es obligatorio")
+            @DecimalMin(value = "0.0", message = "El puntaje no puede ser negativo")
             BigDecimal awardedScore,
             String reviewComment
     ) {
@@ -141,7 +126,7 @@ public class GradingController {
             Long examCallId,
             Long studentId,
             String studentName,
-            String status,
+            AttemptStatus status,
             BigDecimal finalScore,
             LocalDateTime startedAt,
             LocalDateTime submittedAt
@@ -165,7 +150,7 @@ public class GradingController {
             Long examCallId,
             Long studentId,
             String studentName,
-            String status,
+            AttemptStatus status,
             BigDecimal finalScore,
             LocalDateTime startedAt,
             LocalDateTime submittedAt,
@@ -218,7 +203,7 @@ public class GradingController {
     public record StudentResultResponse(
             Long attemptId,
             Long examCallId,
-            String status,
+            AttemptStatus status,
             BigDecimal finalScore,
             LocalDateTime submittedAt
     ) {

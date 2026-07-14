@@ -1,0 +1,9 @@
+<main class="auth-shell">
+  <section class="auth-card">
+    <h1>{{ title() }}</h1>
+    <p>Hola {{ sessionService.user()?.name || sessionService.user()?.username }}.</p>
+    <p class="role">Rol actual: {{ sessionService.role() }}</p>
+
+    <button type="button" (click)="logout()" [disabled]="isLoggingOut()">Cerrar sesion</button>
+  </section>
+</main>

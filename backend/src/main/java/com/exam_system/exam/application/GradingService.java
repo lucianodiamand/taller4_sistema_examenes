@@ -110,4 +110,21 @@ public class GradingService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         "La resolución no existe o no te pertenece"));
     }
+
+    @Transactional(readOnly = true)
+    public List<ValidationCommentView> getValidationCommentsForStudent(Long studentId) {
+        return examAttemptRepository.findByStudentId(studentId).stream()
+                .flatMap(attempt -> attempt.getQuestions().stream()
+                        .filter(question -> question.getReviewComment() != null
+                                && !question.getReviewComment().isBlank())
+                        .map(question -> new ValidationCommentView(
+                                attempt.getId(),
+                                question.getId(),
+                                question.getReviewComment()
+                        )))
+                .toList();
+    }
+
+    public record ValidationCommentView(Long attemptId, Long attemptQuestionId, String comment) {
+    }
 }

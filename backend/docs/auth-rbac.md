@@ -1,14 +1,14 @@
-# Backend Auth and RBAC Notes
+# Notas de Auth y RBAC Backend
 
 ## Roles
 
-- `PROFESOR`
-- `ESTUDIANTE`
+- `PROFESSOR`
+- `STUDENT`
 
 ## Expected Rules
 
-- Solo `PROFESOR` crea examenes/preguntas/convocatorias.
-- Solo `ESTUDIANTE` rinde intentos.
+- Solo `PROFESSOR` crea examenes/preguntas/convocatorias.
+- Solo `STUDENT` rinde intentos.
 - Revision y calificacion solo rol docente.
 
 ## JWT Expectations

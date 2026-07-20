@@ -2,7 +2,7 @@
 
 ## MVP Scope
 
-- Autenticacion con roles: `PROFESOR` y `ESTUDIANTE`
+- Autenticacion con roles: `PROFESSOR` y `STUDENT`
 - Profesor crea examenes y preguntas
 - Profesor publica convocatoria con ventana de tiempo
 - Estudiante rinde solo en ventana abierta
@@ -72,14 +72,14 @@ erDiagram
         String reviewComment
     }
 
-    ROLE ||--o{ USER : "tiene"
-    USER ||--o{ EXAM : "crea (profesor)"
-    EXAM ||--o{ QUESTION : "contiene"
-    EXAM ||--o{ EXAM_CALL : "se publica en"
-    EXAM_CALL ||--o{ EXAM_ATTEMPT : "genera intentos"
-    USER ||--o{ EXAM_ATTEMPT : "rinde (estudiante)"
-    EXAM_ATTEMPT ||--o{ ATTEMPT_QUESTION : "respuestas"
-    QUESTION ||--o{ ATTEMPT_QUESTION : "instancia"
+    ROLE ||--o{ USER : "has"
+    USER ||--o{ EXAM : "creates (professor)"
+    EXAM ||--o{ QUESTION : "contains"
+    EXAM ||--o{ EXAM_CALL : "published in"
+    EXAM_CALL ||--o{ EXAM_ATTEMPT : "generates attempts"
+    USER ||--o{ EXAM_ATTEMPT : "takes (student)"
+    EXAM_ATTEMPT ||--o{ ATTEMPT_QUESTION : "answers"
+    QUESTION ||--o{ ATTEMPT_QUESTION : "instance"
 ```
 
 ## Use Case Diagram
@@ -89,16 +89,16 @@ flowchart LR
     P[Profesor]
     E[Estudiante]
 
-    UC1((Crear examen))
-    UC2((Agregar preguntas))
-    UC3((Publicar convocatoria))
-    UC4((Revisar y calificar intento))
-    UC5((Ver historial de examenes))
+    UC1((Create exam))
+    UC2((Add questions))
+    UC3((Publish exam call))
+    UC4((Review and grade attempt))
+    UC5((View exam history))
 
-    UC6((Unirse a examen abierto))
-    UC7((Responder preguntas))
-    UC8((Enviar examen))
-    UC9((Ver resultado))
+    UC6((Join open exam))
+    UC7((Answer questions))
+    UC8((Submit exam))
+    UC9((View result))
 
     P --> UC1
     P --> UC2

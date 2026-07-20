@@ -1,4 +1,4 @@
-# Backend API Notes
+# Notas de API Backend
 
 Notas de referencia rápida para endpoints MVP.
 
@@ -6,12 +6,12 @@ Notas de referencia rápida para endpoints MVP.
 
 - Local: `http://localhost:8080/api`
 
-## Exam Endpoints
+## Endpoints de examenes
 
 - `GET /api/exams`
 - `POST /api/exams`
 
-## Student Exam Endpoints (EMA)
+## Endpoints de examenes de estudiante (EMA)
 
 - `GET /api/student/exams/available`
 - `POST /api/student/exams/{examCallId}/attempts`
@@ -22,7 +22,7 @@ Notas de referencia rápida para endpoints MVP.
 
 Detalle de payloads y reglas: `backend/docs/student-exam-flow.md`.
 
-## Grading Endpoints (VALEN)
+## Endpoints de correccion (VALEN)
 
 - `GET /api/grading/attempts`
 - `GET /api/grading/exams/{examId}/attempts`
@@ -33,7 +33,7 @@ Detalle de payloads y reglas: `backend/docs/student-exam-flow.md`.
 - `GET /api/grading/my-results/{attemptId}`
 - `GET /api/grading/my-validations`
 
-## Auth Endpoints
+## Endpoints de autenticacion
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
@@ -42,7 +42,36 @@ Detalle de payloads y reglas: `backend/docs/student-exam-flow.md`.
 - `POST /api/auth/logout-all`
 - `GET /api/users/me`
 
-## Notes
+## Endpoints admin de usuarios
+
+- `GET /api/users`
+- `POST /api/users`
+- `PATCH /api/users/{id}`
+- `DELETE /api/users/{id}`
+
+Restricciones:
+
+- Admin CRUD limitado a usuarios `PROFESSOR` y `STUDENT`.
+- Usuarios admin no se pueden modificar ni eliminar desde estos endpoints.
+- Usuario logueado actual no puede auto-eliminarse.
+
+## Endpoints de roles y permisos
+
+- `GET /api/roles`
+- `PATCH /api/roles/{role}`
+- `GET /api/roles/{role}/permissions`
+- `PATCH /api/roles/{role}/permissions`
+- `GET /api/permissions`
+- `POST /api/permissions`
+- `PATCH /api/permissions/{id}`
+- `DELETE /api/permissions/{id}`
+
+Restricciones:
+
+- Roles se mantienen fijos (`ADMIN`, `PROFESSOR`, `STUDENT`).
+- El borrado de permiso falla cuando el permiso esta asignado a algun rol.
+
+## Notas
 
 - Mantener contratos estables entre frontend/backend.
 - Documentar cambios de payloads en PR de backend.

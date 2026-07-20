@@ -10,10 +10,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.List;
 
 @Service
 public class UserService {
+
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_PROFESSOR = "PROFESSOR";
+    private static final String ROLE_STUDENT = "STUDENT";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -61,16 +66,79 @@ public class UserService {
 
     @Transactional
     public User createProfessor(String name, String username, String password) {
-        if (userRepository.existsByUsername(username)) {
+        return createByAdmin(name, username, password, ROLE_PROFESSOR);
+    }
+
+    @Transactional
+    public User createByAdmin(String name, String username, String password, String roleName) {
+        String normalizedUsername = normalizeRequired(username, "username");
+        if (userRepository.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Username already exists");
         }
-        Role role = roleRepository.findByName("PROFESSOR")
-                .orElseThrow(() -> new EntityNotFoundException("Role PROFESSOR not found"));
+
+        Role role = resolveAllowedManagedRole(roleName);
+
         User user = new User();
-        user.setName(name);
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setName(normalizeRequired(name, "name"));
+        user.setUsername(normalizedUsername);
+        user.setPassword(passwordEncoder.encode(normalizeRequired(password, "password")));
         user.setRole(role);
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateByAdmin(Long id, String name, String password, String roleName) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        denyIfAdminTarget(user);
+
+        if (name != null) {
+            user.setName(normalizeRequired(name, "name"));
+        }
+        if (password != null) {
+            user.setPassword(passwordEncoder.encode(normalizeRequired(password, "password")));
+        }
+        if (roleName != null) {
+            user.setRole(resolveAllowedManagedRole(roleName));
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteByAdmin(Long id) {
+        if (currentUser.id().equals(id)) {
+            throw new IllegalArgumentException("Cannot delete current user");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        denyIfAdminTarget(user);
+        userRepository.delete(user);
+    }
+
+    private Role resolveAllowedManagedRole(String roleName) {
+        String normalized = normalizeRequired(roleName, "role").toUpperCase(Locale.ROOT);
+        if (!ROLE_PROFESSOR.equals(normalized) && !ROLE_STUDENT.equals(normalized)) {
+            throw new IllegalArgumentException("Role not allowed");
+        }
+
+        return roleRepository.findByName(normalized)
+                .orElseThrow(() -> new EntityNotFoundException("Role " + normalized + " not found"));
+    }
+
+    private void denyIfAdminTarget(User user) {
+        if (user.getRole() != null && ROLE_ADMIN.equals(user.getRole().getName())) {
+            throw new IllegalArgumentException("Cannot modify admin users");
+        }
+    }
+
+    private String normalizeRequired(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " is required");
+        }
+        return value.trim();
     }
 }

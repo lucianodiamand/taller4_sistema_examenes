@@ -62,12 +62,12 @@ public class ExamController {
     }
 
     public record CreateExamRequest(
-            @NotBlank(message = "El titulo es obligatorio") String title,
+            @NotBlank(message = "Title is required") String title,
             String description,
-            @NotNull(message = "La duracion es obligatoria")
-            @Min(value = 1, message = "La duracion debe ser al menos 1")
+            @NotNull(message = "Duration is required")
+            @Min(value = 1, message = "Duration must be at least 1")
             Integer durationMinutes,
-            @NotNull(message = "El profesor es obligatorio") Long professorId
+            @NotNull(message = "Professor is required") Long professorId
     ) {
     }
 

@@ -1,0 +1,102 @@
+<main class="admin-access-shell">
+  <header class="page-header">
+    <div>
+      <h1>Roles y permisos</h1>
+      <p>Controla accesos del sistema para cada rol.</p>
+    </div>
+    <nav class="header-nav">
+      <a mat-button [routerLink]="routes.admin">Inicio admin</a>
+      <a mat-button [routerLink]="routes.adminUsers">Usuarios</a>
+      <a mat-button [routerLink]="routes.profile">Mi perfil</a>
+    </nav>
+  </header>
+
+  @if (loading()) {
+    <mat-card class="panel" appearance="outlined">
+      <p>Cargando configuración de accesos...</p>
+    </mat-card>
+  } @else {
+    <section class="content-grid">
+      <mat-card class="panel" appearance="outlined">
+        <h2>Roles</h2>
+
+        <mat-list>
+          @for (role of roles(); track role.id) {
+            <button mat-list-item type="button" (click)="chooseRole(role.name)">
+              <span>{{ toRoleLabel(role.name) }}</span>
+            </button>
+          }
+        </mat-list>
+
+        <form [formGroup]="roleDescriptionForm" (ngSubmit)="saveRoleDescription()" class="description-form">
+          <h3>Descripción del rol</h3>
+          <mat-form-field>
+            <mat-label>Descripción</mat-label>
+            <input matInput type="text" formControlName="description" />
+          </mat-form-field>
+          <button mat-stroked-button type="submit" [disabled]="busy()">Guardar descripción</button>
+        </form>
+      </mat-card>
+
+      <mat-card class="panel" appearance="outlined">
+        <h2>Permisos de {{ toRoleLabel(selectedRole()) }}</h2>
+
+        <div class="permissions-list">
+          @for (permission of permissions(); track permission.id) {
+            <mat-checkbox
+              [checked]="hasPermission(permission.code)"
+              (change)="togglePermission(permission.code, $event.checked)"
+            >
+              <strong>{{ permission.code }}</strong>
+              <span>{{ permission.description || 'Sin descripción' }}</span>
+            </mat-checkbox>
+          }
+        </div>
+
+        <button mat-flat-button type="button" (click)="saveRolePermissions()" [disabled]="busy()">
+          Guardar permisos del rol
+        </button>
+      </mat-card>
+
+      <mat-card class="panel" appearance="outlined">
+        <h2>CRUD de permisos</h2>
+
+        <form [formGroup]="permissionForm" (ngSubmit)="savePermission()" class="permission-form">
+          <mat-form-field>
+            <mat-label>Código</mat-label>
+            <input matInput type="text" formControlName="code" />
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Descripción</mat-label>
+            <input matInput type="text" formControlName="description" />
+          </mat-form-field>
+
+          @if (permissionFormError(); as message) {
+            <p class="error" role="alert">{{ message }}</p>
+          }
+
+          <div class="permission-actions">
+            <button mat-button type="button" (click)="resetPermissionForm()">Limpiar</button>
+            <button mat-flat-button type="submit" [disabled]="busy()">Guardar permiso</button>
+          </div>
+        </form>
+
+        <div class="permissions-admin-list">
+          @for (permission of permissions(); track permission.id) {
+            <article class="permission-item">
+              <div>
+                <h3>{{ permission.code }}</h3>
+                <p>{{ permission.description || 'Sin descripción' }}</p>
+              </div>
+              <div class="item-actions">
+                <button mat-stroked-button type="button" (click)="editPermission(permission)">Editar</button>
+                <button mat-button type="button" (click)="deletePermission(permission)">Eliminar</button>
+              </div>
+            </article>
+          }
+        </div>
+      </mat-card>
+    </section>
+  }
+</main>

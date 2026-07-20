@@ -92,7 +92,7 @@ public class GradingService {
 
         BigDecimal finalScore = attempt.getQuestions().stream()
                 .map(q -> q.getAwardedScore() != null ? q.getAwardedScore() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (sum, score) -> sum.add(score));
 
         attempt.setFinalScore(finalScore);
         attempt.setStatus(AttemptStatus.GRADED);

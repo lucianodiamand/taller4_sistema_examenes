@@ -1,2 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
 @import '@angular/material/prebuilt-themes/azure-blue.css';
+
+html {
+  min-height: 100%;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f6fa;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+button,
+textarea {
+  font: inherit;
+}

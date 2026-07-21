@@ -1,0 +1,183 @@
+<main class="student-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Panel del estudiante</span>
+      <h1>Mis exámenes</h1>
+      <p>Desde acá podés comenzar un examen, guardar tus respuestas y revisar tus resultados.</p>
+    </div>
+    <button class="secondary-button" type="button" (click)="loadData()" [disabled]="loading">
+      Actualizar
+    </button>
+  </header>
+
+  @if (error && !activeAttempt) {
+    <div class="notice error">{{ error }}</div>
+  }
+
+  <nav class="tabs" aria-label="Secciones de exámenes">
+    <button
+      type="button"
+      [class.active]="section === 'available'"
+      (click)="changeSection('available')"
+    >
+      Disponibles
+    </button>
+    <button
+      type="button"
+      [class.active]="section === 'history'"
+      (click)="changeSection('history')"
+    >
+      Mis resoluciones
+    </button>
+  </nav>
+
+  @if (loading) {
+    <section class="empty-state">Cargando información...</section>
+  } @else if (section === 'available') {
+    <section class="card-grid">
+      @for (exam of availableExams; track exam.examCallId) {
+        <article class="exam-card">
+          <div class="card-heading">
+            <div>
+              <span class="status in-progress">
+                {{ exam.attemptId ? 'En curso' : 'Disponible' }}
+              </span>
+              <h2>{{ exam.title }}</h2>
+            </div>
+            <strong>{{ exam.durationMinutes }} min</strong>
+          </div>
+
+          <p>{{ exam.description || 'Sin descripción.' }}</p>
+
+          <dl class="exam-data">
+            <div>
+              <dt>Profesor</dt>
+              <dd>{{ exam.professorName || 'Sin informar' }}</dd>
+            </div>
+            <div>
+              <dt>Cierre</dt>
+              <dd>{{ exam.endsAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            <div>
+              <dt>Cupos</dt>
+              <dd>{{ exam.remainingCapacity === null ? 'Sin límite' : exam.remainingCapacity }}</dd>
+            </div>
+          </dl>
+
+          <button class="primary-button" type="button" (click)="startOrContinue(exam)">
+            {{ exam.attemptId ? 'Continuar examen' : 'Comenzar examen' }}
+          </button>
+        </article>
+      } @empty {
+        <div class="empty-state full-width">
+          No hay exámenes disponibles en este momento.
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="history-list">
+      @for (attempt of attempts; track attempt.attemptId) {
+        <article class="history-item">
+          <div>
+            <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
+              {{ statusLabel(attempt.status) }}
+            </span>
+            <h2>{{ attempt.examTitle }}</h2>
+            <p>
+              Iniciado el {{ attempt.startedAt | date: 'dd/MM/yyyy HH:mm' }}
+              @if (attempt.submittedAt) {
+                · Enviado el {{ attempt.submittedAt | date: 'dd/MM/yyyy HH:mm' }}
+              }
+            </p>
+          </div>
+
+          <div class="history-actions">
+            @if (attempt.status === 'GRADED') {
+              <strong class="score">Nota: {{ attempt.finalScore ?? '-' }}</strong>
+            }
+            <button class="secondary-button" type="button" (click)="openAttempt(attempt.attemptId)">
+              {{ attempt.status === 'IN_PROGRESS' ? 'Continuar' : 'Ver detalle' }}
+            </button>
+          </div>
+        </article>
+      } @empty {
+        <div class="empty-state">Todavía no tenés resoluciones registradas.</div>
+      }
+    </section>
+  }
+</main>
+
+@if (activeAttempt; as attempt) {
+  <div class="attempt-backdrop">
+    <section class="attempt-panel" role="dialog" aria-modal="true" aria-labelledby="attempt-title">
+      <header class="attempt-header">
+        <div>
+          <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
+            {{ statusLabel(attempt.status) }}
+          </span>
+          <h2 id="attempt-title">{{ attempt.examTitle }}</h2>
+          <p>{{ attempt.examDescription || 'Sin descripción.' }}</p>
+        </div>
+        <button class="close-button" type="button" (click)="closeAttempt()" aria-label="Cerrar">
+          ×
+        </button>
+      </header>
+
+      <div class="attempt-info">
+        <span>Inicio: {{ attempt.startedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+        <span>Límite: {{ attempt.deadline | date: 'dd/MM/yyyy HH:mm' }}</span>
+        @if (attempt.status === 'GRADED') {
+          <strong>Nota final: {{ attempt.finalScore ?? '-' }}</strong>
+        }
+      </div>
+
+      @if (message) {
+        <div class="notice success">{{ message }}</div>
+      }
+      @if (error) {
+        <div class="notice error">{{ error }}</div>
+      }
+
+      <div class="questions">
+        @for (question of attempt.questions; track question.attemptQuestionId) {
+          <article class="question-card">
+            <div class="question-heading">
+              <h3>{{ question.order }}. {{ question.statement }}</h3>
+              <span>{{ question.points }} puntos · {{ questionTypeLabel(question.type) }}</span>
+            </div>
+
+            <label [for]="'answer-' + question.attemptQuestionId">Respuesta</label>
+            <textarea
+              [id]="'answer-' + question.attemptQuestionId"
+              rows="4"
+              [(ngModel)]="question.answerText"
+              [disabled]="!isEditable(attempt.status)"
+              placeholder="Escribí tu respuesta"
+            ></textarea>
+
+            @if (attempt.status === 'GRADED') {
+              <div class="review">
+                <strong>Puntaje obtenido: {{ question.awardedScore ?? 0 }} / {{ question.points }}</strong>
+                @if (question.reviewComment) {
+                  <p>{{ question.reviewComment }}</p>
+                }
+              </div>
+            }
+          </article>
+        }
+      </div>
+
+      <footer class="attempt-actions">
+        <button class="secondary-button" type="button" (click)="closeAttempt()">Cerrar</button>
+        @if (isEditable(attempt.status)) {
+          <button class="secondary-button" type="button" (click)="saveProgress()" [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar progreso' }}
+          </button>
+          <button class="primary-button" type="button" (click)="submitAttempt()" [disabled]="saving">
+            Enviar examen
+          </button>
+        }
+      </footer>
+    </section>
+  </div>
+}

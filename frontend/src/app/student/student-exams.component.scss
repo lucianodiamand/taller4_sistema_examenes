@@ -1,0 +1,404 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #172033;
+  background: #f4f6fa;
+}
+
+.student-page {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}
+
+.page-header,
+.card-heading,
+.history-item,
+.history-actions,
+.attempt-header,
+.question-heading,
+.attempt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-header,
+.card-heading,
+.attempt-header,
+.question-heading {
+  align-items: flex-start;
+}
+
+.eyebrow {
+  color: #3157a4;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin: 6px 0 8px;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.page-header p,
+.exam-card > p,
+.history-item p,
+.attempt-header p {
+  margin-bottom: 0;
+  color: #657089;
+}
+
+.tabs {
+  display: flex;
+  width: fit-content;
+  gap: 6px;
+  margin: 28px 0 24px;
+  padding: 5px;
+  border: 1px solid #dce2ec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.tabs button,
+.primary-button,
+.secondary-button,
+.close-button {
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabs button {
+  padding: 10px 16px;
+  border: 0;
+  color: #5e687b;
+  background: transparent;
+}
+
+.tabs button.active,
+.primary-button {
+  color: #fff;
+  background: #3157a4;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.exam-card,
+.history-item,
+.empty-state {
+  border: 1px solid #dce2ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(30, 43, 68, 0.06);
+}
+
+.exam-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+}
+
+.card-heading h2,
+.history-item h2 {
+  margin: 8px 0 0;
+  font-size: 1.15rem;
+}
+
+.card-heading > strong {
+  white-space: nowrap;
+  color: #3157a4;
+}
+
+.exam-data {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 0;
+}
+
+.exam-data dt {
+  margin-bottom: 3px;
+  color: #7b8496;
+  font-size: 0.75rem;
+}
+
+.exam-data dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+.primary-button {
+  border: 1px solid #3157a4;
+}
+
+.secondary-button,
+.close-button {
+  border: 1px solid #cdd5e2;
+  color: #28354e;
+  background: #fff;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 18px 20px;
+}
+
+.history-actions {
+  flex-shrink: 0;
+}
+
+.status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #3157a4;
+  background: #eaf0ff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status.submitted {
+  color: #8a5700;
+  background: #fff1d6;
+}
+
+.status.graded,
+.score {
+  color: #246444;
+}
+
+.status.graded {
+  background: #def4e8;
+}
+
+.empty-state {
+  padding: 36px 20px;
+  color: #657089;
+  text-align: center;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.notice {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 0.92rem;
+}
+
+.notice.error {
+  color: #8c2525;
+  background: #fee8e8;
+}
+
+.notice.success {
+  color: #1f6643;
+  background: #e2f5e9;
+}
+
+.attempt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(16, 24, 40, 0.55);
+}
+
+.attempt-panel {
+  width: min(900px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(10, 18, 34, 0.28);
+}
+
+.attempt-header,
+.attempt-info,
+.attempt-actions {
+  padding: 20px 24px;
+}
+
+.attempt-header {
+  border-bottom: 1px solid #e2e7ef;
+}
+
+.attempt-header h2 {
+  margin: 8px 0 6px;
+}
+
+.close-button {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.attempt-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  color: #657089;
+  font-size: 0.9rem;
+}
+
+.attempt-panel > .notice {
+  margin-right: 24px;
+  margin-left: 24px;
+}
+
+.questions {
+  display: grid;
+  gap: 14px;
+  padding: 4px 24px 24px;
+}
+
+.question-card {
+  padding: 18px;
+  border: 1px solid #dce2ec;
+  border-radius: 12px;
+}
+
+.question-heading {
+  margin-bottom: 14px;
+}
+
+.question-heading h3 {
+  margin-bottom: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.question-heading span {
+  flex-shrink: 0;
+  color: #7b8496;
+  font-size: 0.78rem;
+}
+
+.question-card label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.question-card textarea {
+  width: 100%;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #cdd5e2;
+  border-radius: 8px;
+  color: #172033;
+  background: #fff;
+  font: inherit;
+}
+
+.question-card textarea:disabled {
+  color: #465269;
+  background: #f5f6f8;
+}
+
+.review {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  color: #315141;
+  background: #edf7f1;
+}
+
+.review p {
+  margin: 6px 0 0;
+}
+
+.attempt-actions {
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #e2e7ef;
+  background: #fff;
+}
+
+@media (max-width: 680px) {
+  .student-page {
+    width: calc(100% - 20px);
+    padding-top: 24px;
+  }
+
+  .page-header,
+  .history-item,
+  .history-actions,
+  .question-heading,
+  .attempt-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tabs {
+    width: 100%;
+  }
+
+  .tabs button {
+    flex: 1;
+  }
+
+  .exam-data {
+    grid-template-columns: 1fr;
+  }
+
+  .history-actions button,
+  .attempt-actions button {
+    width: 100%;
+  }
+
+  .attempt-backdrop {
+    padding: 0;
+  }
+
+  .attempt-panel {
+    width: 100%;
+    max-height: 100vh;
+    min-height: 100vh;
+    border-radius: 0;
+  }
+}

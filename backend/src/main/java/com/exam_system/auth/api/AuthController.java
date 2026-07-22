@@ -61,22 +61,22 @@ public class AuthController {
     }
 
     public record RegisterRequest(
-            @NotBlank(message = "El nombre es obligatorio") String name,
-            @NotBlank(message = "El username es obligatorio") String username,
-            @NotBlank(message = "La password es obligatoria")
-            @Size(min = 6, message = "La password debe tener al menos 6 caracteres")
+            @NotBlank(message = "Name is required") String name,
+            @NotBlank(message = "Username is required") String username,
+            @NotBlank(message = "Password is required")
+            @Size(min = 6, message = "Password must be at least 6 characters")
             String password
     ) {
     }
 
     public record LoginRequest(
-            @NotBlank(message = "El username es obligatorio") String username,
-            @NotBlank(message = "La password es obligatoria") String password
+            @NotBlank(message = "Username is required") String username,
+            @NotBlank(message = "Password is required") String password
     ) {
     }
 
     public record RefreshRequest(
-            @NotBlank(message = "El refresh token es obligatorio") String refreshToken
+            @NotBlank(message = "Refresh token is required") String refreshToken
     ) {
     }
 

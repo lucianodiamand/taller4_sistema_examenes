@@ -1,21 +1,21 @@
 <main class="auth-shell">
   <mat-card class="auth-card" appearance="outlined">
-    <h1>Create account</h1>
-    <p>Student account registration.</p>
+    <h1>Crear cuenta</h1>
+    <p>Registro de cuenta para estudiantes.</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
       <mat-form-field>
-        <mat-label>Name</mat-label>
+        <mat-label>Nombre</mat-label>
         <input matInput type="text" formControlName="name" autocomplete="name" />
       </mat-form-field>
 
       <mat-form-field>
-        <mat-label>Username</mat-label>
+        <mat-label>Usuario</mat-label>
         <input matInput type="text" formControlName="username" autocomplete="username" />
       </mat-form-field>
 
       <mat-form-field>
-        <mat-label>Password</mat-label>
+        <mat-label>Contrasena</mat-label>
         <input matInput type="password" formControlName="password" autocomplete="new-password" />
       </mat-form-field>
 
@@ -27,11 +27,11 @@
         @if (busy()) {
           <mat-spinner diameter="20" />
         } @else {
-          <span>Create account</span>
+          <span>Crear cuenta</span>
         }
       </button>
     </form>
 
-    <a [routerLink]="routes.login">Already have account? Sign in</a>
+    <a [routerLink]="routes.login">Ya tienes cuenta? Inicia sesion</a>
   </mat-card>
 </main>

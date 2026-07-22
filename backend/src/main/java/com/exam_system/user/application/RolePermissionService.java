@@ -24,6 +24,19 @@ public class RolePermissionService {
     }
 
     @Transactional(readOnly = true)
+    public List<Role> findAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Transactional
+    public Role updateRoleDescription(String roleName, String description) {
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        role.setDescription(normalizeOptional(description));
+        return roleRepository.save(role);
+    }
+
+    @Transactional(readOnly = true)
     public Set<String> getPermissions(String roleName) {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
@@ -53,5 +66,12 @@ public class RolePermissionService {
             codes.add(permission.getCode());
         }
         return codes;
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

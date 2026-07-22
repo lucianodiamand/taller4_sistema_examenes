@@ -1,12 +1,7 @@
 package com.exam_system.exam.api;
 
-import com.exam_system.auth.security.CurrentUser;
-import com.exam_system.exam.application.ExamService;
-import com.exam_system.exam.domain.Exam;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.exam_system.auth.security.CurrentUser;
+import com.exam_system.exam.application.ExamService;
+import com.exam_system.exam.domain.Exam;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/exams")
@@ -65,11 +67,12 @@ public class ExamController {
     }
 
     public record CreateExamRequest(
-            @NotBlank(message = "El titulo es obligatorio") String title,
+            @NotBlank(message = "Title is required") String title,
             String description,
-            @NotNull(message = "La duracion es obligatoria")
-            @Min(value = 1, message = "La duracion debe ser al menos 1")
-            Integer durationMinutes
+            @NotNull(message = "Duration is required")
+            @Min(value = 1, message = "Duration must be at least 1")
+            Integer durationMinutes,
+            @NotNull(message = "Professor is required") Long professorId
     ) {
     }
 

@@ -1,7 +1,17 @@
 <main class="shell">
   <mat-card class="card" appearance="outlined">
     <h1>{{ title() }}</h1>
-    <p>Logged in as <strong>{{ username() }}</strong></p>
-    <button mat-flat-button type="button" (click)="logout()">Logout</button>
+    <p>Sesion iniciada como <strong>{{ username() }}</strong></p>
+
+    <section class="actions-grid">
+      <a mat-stroked-button [routerLink]="routes.profile">Mi perfil</a>
+
+      @if (isAdmin()) {
+        <a mat-stroked-button [routerLink]="routes.adminUsers">Usuarios</a>
+        <a mat-stroked-button [routerLink]="routes.adminAccess">Roles y permisos</a>
+      }
+
+      <button mat-flat-button type="button" (click)="logout()">Cerrar sesion</button>
+    </section>
   </mat-card>
 </main>

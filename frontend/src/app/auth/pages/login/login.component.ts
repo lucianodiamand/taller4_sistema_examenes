@@ -59,13 +59,13 @@ export class LoginComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBar.open('Session started.', 'Close', { duration: AUTH_UI.snackbarDurationMs });
+          this.snackBar.open('Sesion iniciada correctamente.', 'Cerrar', { duration: AUTH_UI.snackbarDurationMs });
           void this.router.navigateByUrl(this.authService.roleHome(this.authService.role()));
         },
         error: (error: unknown) => {
-          const message = this.authService.errorMessage(error, 'Login failed');
+          const message = this.authService.errorMessage(error, 'No se pudo iniciar sesion');
           this.formError.set(message);
-          this.snackBar.open(message, 'Close', { duration: AUTH_UI.snackbarDurationMs });
+          this.snackBar.open(message, 'Cerrar', { duration: AUTH_UI.snackbarDurationMs });
         },
       });
   }

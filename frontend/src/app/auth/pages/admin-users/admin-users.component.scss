@@ -1,0 +1,111 @@
+.admin-users-shell {
+  min-height: 100vh;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 5% 0%, rgba(38, 122, 177, 0.15), transparent 50%),
+    radial-gradient(circle at 98% 10%, rgba(247, 166, 94, 0.18), transparent 45%),
+    #f3f6fa;
+}
+
+.page-header {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: #425364;
+  }
+}
+
+.header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.content-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+}
+
+.editor-form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.error {
+  margin: 0;
+  color: #b42318;
+}
+
+.users-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.user-item {
+  display: grid;
+  gap: 0.7rem;
+  border: 1px solid #d3dce8;
+  border-radius: 0.8rem;
+  padding: 0.8rem;
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  p {
+    color: #4b5b6f;
+  }
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+@media (min-width: 900px) {
+  .content-grid {
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-actions,
+  .item-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions > *,
+  .item-actions > * {
+    width: 100%;
+    min-height: 44px;
+  }
+}

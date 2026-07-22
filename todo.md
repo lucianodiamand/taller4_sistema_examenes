@@ -41,14 +41,14 @@
 ### Integrante 3 - Resolver examen (estudiante) | 👤 **EMA**
 
 - Backend: ✅
-  - [x] Endpoints para listar examenes disponibles, iniciar/continuar un intento y enviar la resolucion.
-  - [x] Persistencia de respuestas parciales y finales por estudiante y examen.
-  - [x] Historial propio con estados `IN_PROGRESS`, `SUBMITTED` y `GRADED`.
-  - [x] Regla de seguridad: el estudiante solo puede consultar y modificar sus propias resoluciones.
-  - [x] Validaciones de ventana horaria, duracion, cupo e intento unico.
-- Frontend:
+  - Endpoints para listar examenes disponibles, iniciar/continuar un intento y enviar la resolucion.
+  - Persistencia de respuestas parciales y finales por estudiante y examen.
+  - Historial propio con estados `IN_PROGRESS`, `SUBMITTED` y `GRADED`.
+  - Regla de seguridad: el estudiante solo puede consultar y modificar sus propias resoluciones.
+  - Validaciones de ventana horaria, duracion, cupo e intento unico.
+- Frontend: ✅
   - Pantalla de listado de examenes disponibles para estudiante.
-  - Flujo de resolucion y envio.
+  - Flujo de resolucion, guardado y envio.
   - Vista "Mis resoluciones" (historial de estudiante).
 - Integracion:
   - Probar integracion end-to-end con examenes creados por integrante 2.

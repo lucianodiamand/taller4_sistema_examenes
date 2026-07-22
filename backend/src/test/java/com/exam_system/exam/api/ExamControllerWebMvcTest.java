@@ -1,5 +1,6 @@
 package com.exam_system.exam.api;
 
+import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.auth.security.JwtAuthenticationFilter;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
@@ -34,6 +35,9 @@ class ExamControllerWebMvcTest {
     private ExamService examService;
 
     @MockitoBean
+    private CurrentUser currentUser;
+
+    @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
@@ -63,8 +67,7 @@ class ExamControllerWebMvcTest {
                 {
                   "title": "",
                   "description": "x",
-                  "durationMinutes": 0,
-                  "professorId": null
+                  "durationMinutes": 0
                 }
                 """;
 
@@ -73,5 +76,36 @@ class ExamControllerWebMvcTest {
                         .content(payload))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "exams.create")
+    void postExamUsesProfessorIdFromJwtNotRequestBody() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        User professor = new User();
+        professor.setId(77L);
+
+        Exam savedExam = new Exam();
+        savedExam.setTitle("Algebra");
+        savedExam.setDescription("Parcial 1");
+        savedExam.setDurationMinutes(90);
+        savedExam.setProfessor(professor);
+
+        when(examService.create("Algebra", "Parcial 1", 90, 77L)).thenReturn(savedExam);
+
+        String payload = """
+                {
+                  "title": "Algebra",
+                  "description": "Parcial 1",
+                  "durationMinutes": 90
+                }
+                """;
+
+        mockMvc.perform(post("/api/exams")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.professorId").value(77));
     }
 }

@@ -52,7 +52,7 @@ export const routes: Routes = [
           roles: [UserRole.STUDENT, UserRole.ADMIN],
           title: 'Student Home',
         },
-        loadComponent: () => import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+        loadComponent: () => import('./student/student-exams.component').then((m) => m.StudentExamsComponent),
       },
       {
         path: APP_ROUTE_PATHS.admin,

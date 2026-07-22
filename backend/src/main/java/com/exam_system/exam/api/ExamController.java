@@ -1,11 +1,7 @@
 package com.exam_system.exam.api;
 
-import com.exam_system.exam.application.ExamService;
-import com.exam_system.exam.domain.Exam;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,22 +11,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.exam_system.auth.security.CurrentUser;
+import com.exam_system.exam.application.ExamService;
+import com.exam_system.exam.domain.Exam;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/exams")
 public class ExamController {
 
     private final ExamService examService;
+    private final CurrentUser currentUser;
 
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, CurrentUser currentUser) {
         this.examService = examService;
+        this.currentUser = currentUser;
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('users.read.self')")
-    public List<ExamResponse> findAll() {
-        return examService.findAll().stream()
+    @PreAuthorize("hasAuthority('exams.create')")
+    public List<ExamResponse> findMine() {
+        return examService.findAllForProfessor(currentUser.id()).stream()
                 .map(exam -> new ExamResponse(
                         exam.getId(),
                         exam.getTitle(),
@@ -49,7 +54,7 @@ public class ExamController {
                 request.title(),
                 request.description(),
                 request.durationMinutes(),
-                request.professorId()
+                currentUser.id()
         );
 
         return new ExamResponse(

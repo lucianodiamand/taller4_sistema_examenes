@@ -31,9 +31,9 @@ public class ExamController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('users.read.self')")
-    public List<ExamResponse> findAll() {
-        return examService.findAll().stream()
+    @PreAuthorize("hasAuthority('exams.create')")
+    public List<ExamResponse> findMine() {
+        return examService.findAllForProfessor(currentUser.id()).stream()
                 .map(exam -> new ExamResponse(
                         exam.getId(),
                         exam.getTitle(),

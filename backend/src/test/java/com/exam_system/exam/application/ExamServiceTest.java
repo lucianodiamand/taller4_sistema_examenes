@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,5 +52,18 @@ class ExamServiceTest {
 
         assertThrows(EntityNotFoundException.class,
                 () -> examService.create("Math", "Midterm", 60, 999L));
+    }
+
+    @Test
+    void findAllForProfessorReturnsOnlyOwnExams() {
+        Exam exam = new Exam();
+        exam.setTitle("Math");
+
+        when(examRepository.findByProfessorId(5L)).thenReturn(List.of(exam));
+
+        List<Exam> result = examService.findAllForProfessor(5L);
+
+        assertEquals(1, result.size());
+        assertEquals("Math", result.get(0).getTitle());
     }
 }

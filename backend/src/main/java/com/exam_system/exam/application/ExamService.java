@@ -1,7 +1,10 @@
 package com.exam_system.exam.application;
 
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.Question;
+import com.exam_system.exam.domain.QuestionType;
 import com.exam_system.exam.repository.ExamRepository;
+import com.exam_system.exam.repository.QuestionRepository;
 import com.exam_system.user.domain.User;
 import com.exam_system.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,10 +22,13 @@ public class ExamService {
 
     private final ExamRepository examRepository;
     private final UserRepository userRepository;
+    private final QuestionRepository questionRepository;
 
-    public ExamService(ExamRepository examRepository, UserRepository userRepository) {
+    public ExamService(ExamRepository examRepository, UserRepository userRepository,
+                        QuestionRepository questionRepository) {
         this.examRepository = examRepository;
         this.userRepository = userRepository;
+        this.questionRepository = questionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -32,7 +38,8 @@ public class ExamService {
     }
 
     @Transactional
-    public Exam create(String title, String description, Integer durationMinutes, Long professorId) {
+    public CreationResult create(String title, String description, Integer durationMinutes, Long professorId,
+                                  List<QuestionInput> questions) {
         User professor = userRepository.findById(professorId)
                 .orElseThrow(() -> new EntityNotFoundException("Professor not found"));
 
@@ -43,7 +50,26 @@ public class ExamService {
         exam.setProfessor(professor);
 
         Exam savedExam = examRepository.save(exam);
-        logger.info("Created exam {} for professor {}", savedExam.getId(), professorId);
-        return savedExam;
+
+        List<Question> savedQuestions = questions.stream()
+                .map(input -> {
+                    Question question = new Question();
+                    question.setExam(savedExam);
+                    question.setStatement(input.statement());
+                    question.setType(input.type());
+                    question.setPoints(input.points());
+                    return questionRepository.save(question);
+                })
+                .toList();
+
+        logger.info("Created exam {} with {} questions for professor {}",
+                savedExam.getId(), savedQuestions.size(), professorId);
+        return new CreationResult(savedExam, savedQuestions);
+    }
+
+    public record QuestionInput(String statement, QuestionType type, Integer points) {
+    }
+
+    public record CreationResult(Exam exam, List<Question> questions) {
     }
 }

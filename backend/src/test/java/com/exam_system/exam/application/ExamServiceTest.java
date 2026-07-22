@@ -1,7 +1,10 @@
 package com.exam_system.exam.application;
 
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.Question;
+import com.exam_system.exam.domain.QuestionType;
 import com.exam_system.exam.repository.ExamRepository;
+import com.exam_system.exam.repository.QuestionRepository;
 import com.exam_system.user.domain.User;
 import com.exam_system.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,22 +31,33 @@ class ExamServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private QuestionRepository questionRepository;
+
     @InjectMocks
     private ExamService examService;
 
+    private static final List<ExamService.QuestionInput> ONE_QUESTION = List.of(
+            new ExamService.QuestionInput("2+2?", QuestionType.OPEN, 10));
+
     @Test
-    void createExamPersistsWithProfessor() {
+    void createExamPersistsWithProfessorAndQuestions() {
         User professor = new User();
         professor.setId(5L);
 
         when(userRepository.findById(5L)).thenReturn(Optional.of(professor));
         when(examRepository.save(any(Exam.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(questionRepository.save(any(Question.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Exam created = examService.create("Math", "Midterm", 60, 5L);
+        ExamService.CreationResult result = examService.create("Math", "Midterm", 60, 5L, ONE_QUESTION);
 
-        assertEquals("Math", created.getTitle());
-        assertEquals(60, created.getDurationMinutes());
-        assertEquals(5L, created.getProfessor().getId());
+        assertEquals("Math", result.exam().getTitle());
+        assertEquals(60, result.exam().getDurationMinutes());
+        assertEquals(5L, result.exam().getProfessor().getId());
+        assertEquals(1, result.questions().size());
+        assertEquals("2+2?", result.questions().get(0).getStatement());
+        assertEquals(QuestionType.OPEN, result.questions().get(0).getType());
+        assertEquals(10, result.questions().get(0).getPoints());
     }
 
     @Test
@@ -51,7 +65,7 @@ class ExamServiceTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class,
-                () -> examService.create("Math", "Midterm", 60, 999L));
+                () -> examService.create("Math", "Midterm", 60, 999L, ONE_QUESTION));
     }
 
     @Test

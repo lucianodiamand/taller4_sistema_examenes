@@ -4,6 +4,8 @@ import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.auth.security.JwtAuthenticationFilter;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.Question;
+import com.exam_system.exam.domain.QuestionType;
 import com.exam_system.user.domain.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -94,13 +98,23 @@ class ExamControllerWebMvcTest {
         savedExam.setDurationMinutes(90);
         savedExam.setProfessor(professor);
 
-        when(examService.create("Algebra", "Parcial 1", 90, 77L)).thenReturn(savedExam);
+        Question savedQuestion = new Question();
+        savedQuestion.setId(10L);
+        savedQuestion.setStatement("2+2?");
+        savedQuestion.setType(QuestionType.OPEN);
+        savedQuestion.setPoints(10);
+
+        when(examService.create(eq("Algebra"), eq("Parcial 1"), eq(90), eq(77L), anyList()))
+                .thenReturn(new ExamService.CreationResult(savedExam, List.of(savedQuestion)));
 
         String payload = """
                 {
                   "title": "Algebra",
                   "description": "Parcial 1",
-                  "durationMinutes": 90
+                  "durationMinutes": 90,
+                  "questions": [
+                    { "statement": "2+2?", "type": "OPEN", "points": 10 }
+                  ]
                 }
                 """;
 
@@ -108,6 +122,7 @@ class ExamControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.professorId").value(77));
+                .andExpect(jsonPath("$.professorId").value(77))
+                .andExpect(jsonPath("$.questions[0].statement").value("2+2?"));
     }
 }

@@ -67,7 +67,7 @@ public class StudentExamService {
             return List.of();
         }
 
-        List<Long> callIds = openCalls.stream().map(ExamCall::getId).toList();
+        List<Long> callIds = openCalls.stream().map(call -> call.getId()).toList();
         Map<Long, ExamAttempt> attemptsByCall = examAttemptRepository
                 .findByStudentIdAndExamCallIdIn(studentId, callIds)
                 .stream()
@@ -188,7 +188,7 @@ public class StudentExamService {
         }
 
         Map<Long, AttemptQuestion> questionsById = attempt.getQuestions().stream()
-                .collect(Collectors.toMap(AttemptQuestion::getId, Function.identity()));
+                .collect(Collectors.toMap(q -> q.getId(), q -> q));
         Set<Long> receivedIds = new HashSet<>();
 
         for (AnswerCommand answer : answers) {

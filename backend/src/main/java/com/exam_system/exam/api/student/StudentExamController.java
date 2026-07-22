@@ -1,12 +1,7 @@
 package com.exam_system.exam.api.student;
 
-import com.exam_system.exam.application.StudentExamService;
-import com.exam_system.exam.application.StudentExamService.AttemptDetailView;
-import com.exam_system.exam.application.StudentExamService.AttemptSummaryView;
-import com.exam_system.exam.application.StudentExamService.AvailableExamView;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.exam_system.exam.application.StudentExamService;
+import com.exam_system.exam.application.StudentExamService.AttemptDetailView;
+import com.exam_system.exam.application.StudentExamService.AttemptSummaryView;
+import com.exam_system.exam.application.StudentExamService.AvailableExamView;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * Endpoints que usa el estudiante para rendir. El id del estudiante nunca se

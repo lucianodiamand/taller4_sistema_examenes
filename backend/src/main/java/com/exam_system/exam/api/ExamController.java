@@ -1,5 +1,6 @@
 package com.exam_system.exam.api;
 
+import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
 import jakarta.validation.Valid;
@@ -22,15 +23,17 @@ import java.util.List;
 public class ExamController {
 
     private final ExamService examService;
+    private final CurrentUser currentUser;
 
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, CurrentUser currentUser) {
         this.examService = examService;
+        this.currentUser = currentUser;
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('users.read.self')")
-    public List<ExamResponse> findAll() {
-        return examService.findAll().stream()
+    @PreAuthorize("hasAuthority('exams.create')")
+    public List<ExamResponse> findMine() {
+        return examService.findAllForProfessor(currentUser.id()).stream()
                 .map(exam -> new ExamResponse(
                         exam.getId(),
                         exam.getTitle(),
@@ -49,7 +52,7 @@ public class ExamController {
                 request.title(),
                 request.description(),
                 request.durationMinutes(),
-                request.professorId()
+                currentUser.id()
         );
 
         return new ExamResponse(
@@ -66,8 +69,7 @@ public class ExamController {
             String description,
             @NotNull(message = "La duracion es obligatoria")
             @Min(value = 1, message = "La duracion debe ser al menos 1")
-            Integer durationMinutes,
-            @NotNull(message = "El profesor es obligatorio") Long professorId
+            Integer durationMinutes
     ) {
     }
 

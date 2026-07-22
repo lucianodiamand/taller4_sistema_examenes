@@ -41,8 +41,10 @@ class ExamControllerWebMvcTest {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
-    @WithMockUser(authorities = "users.read.self")
-    void getExamsReturnsJsonList() throws Exception {
+    @WithMockUser(authorities = "exams.create")
+    void getExamsReturnsOnlyAuthenticatedProfessorsExams() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
         User professor = new User();
         professor.setId(77L);
 
@@ -52,7 +54,7 @@ class ExamControllerWebMvcTest {
         exam.setDurationMinutes(90);
         exam.setProfessor(professor);
 
-        when(examService.findAll()).thenReturn(List.of(exam));
+        when(examService.findAllForProfessor(77L)).thenReturn(List.of(exam));
 
         mockMvc.perform(get("/api/exams"))
                 .andExpect(status().isOk())

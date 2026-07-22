@@ -26,9 +26,9 @@ public class ExamService {
     }
 
     @Transactional(readOnly = true)
-    public List<Exam> findAll() {
-        logger.info("Fetching exam list");
-        return examRepository.findAll();
+    public List<Exam> findAllForProfessor(Long professorId) {
+        logger.info("Fetching exam list for professor {}", professorId);
+        return examRepository.findByProfessorId(professorId);
     }
 
     @Transactional

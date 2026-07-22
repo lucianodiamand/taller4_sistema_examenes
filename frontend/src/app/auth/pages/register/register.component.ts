@@ -60,13 +60,13 @@ export class RegisterComponent {
       )
       .subscribe({
         next: () => {
-          this.snackBar.open('Account created. Sign in now.', 'Close', { duration: AUTH_UI.snackbarDurationMs });
+          this.snackBar.open('Cuenta creada. Ahora inicia sesion.', 'Cerrar', { duration: AUTH_UI.snackbarDurationMs });
           void this.router.navigateByUrl(APP_ROUTES.login);
         },
         error: (error: unknown) => {
-          const message = this.authService.errorMessage(error, 'Register failed');
+          const message = this.authService.errorMessage(error, 'No se pudo crear la cuenta');
           this.formError.set(message);
-          this.snackBar.open(message, 'Close', { duration: AUTH_UI.snackbarDurationMs });
+          this.snackBar.open(message, 'Cerrar', { duration: AUTH_UI.snackbarDurationMs });
         },
       });
   }

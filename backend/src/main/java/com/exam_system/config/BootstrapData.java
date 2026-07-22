@@ -31,6 +31,7 @@ public class BootstrapData {
                                          PasswordEncoder passwordEncoder) {
         return args -> {
             seedRolesAndPermissions(roleRepository, permissionRepository);
+            seedLocalTestUsers(bootstrapProperties, userRepository, roleRepository, passwordEncoder);
 
             if (!bootstrapProperties.isSeedAdmin()) {
                 return;
@@ -54,6 +55,56 @@ public class BootstrapData {
         };
     }
 
+    private void seedLocalTestUsers(BootstrapProperties bootstrapProperties,
+                                    UserRepository userRepository,
+                                    RoleRepository roleRepository,
+                                    PasswordEncoder passwordEncoder) {
+        if (!bootstrapProperties.isSeedLocalTestUsers()) {
+            return;
+        }
+
+        Role professorRole = roleRepository.findByName("PROFESSOR")
+                .orElseThrow(() -> new IllegalStateException("PROFESSOR role not found"));
+        Role studentRole = roleRepository.findByName("STUDENT")
+                .orElseThrow(() -> new IllegalStateException("STUDENT role not found"));
+
+        seedUserIfMissing(
+                userRepository,
+                passwordEncoder,
+                professorRole,
+                bootstrapProperties.getProfessorName(),
+                bootstrapProperties.getProfessorUsername(),
+                bootstrapProperties.getProfessorPassword()
+        );
+        seedUserIfMissing(
+                userRepository,
+                passwordEncoder,
+                studentRole,
+                bootstrapProperties.getStudentName(),
+                bootstrapProperties.getStudentUsername(),
+                bootstrapProperties.getStudentPassword()
+        );
+    }
+
+    private void seedUserIfMissing(UserRepository userRepository,
+                                   PasswordEncoder passwordEncoder,
+                                   Role role,
+                                   String name,
+                                   String username,
+                                   String password) {
+        if (userRepository.existsByUsername(username)) {
+            return;
+        }
+
+        User user = new User();
+        user.setName(name);
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+        userRepository.save(user);
+        logger.info("Seeded local test user {} ({})", username, role.getName());
+    }
+
     private void seedRolesAndPermissions(RoleRepository roleRepository, PermissionRepository permissionRepository) {
         Role admin = ensureRole(roleRepository, "ADMIN", "System administrator");
         Role professor = ensureRole(roleRepository, "PROFESSOR", "Professor");
@@ -64,6 +115,9 @@ public class BootstrapData {
         permissionCatalog.put("users.read.any", "Read any user profile");
         permissionCatalog.put("users.read.self", "Read own profile");
         permissionCatalog.put("users.update.self", "Update own profile");
+        permissionCatalog.put("users.create.any", "Create users as admin");
+        permissionCatalog.put("users.update.any", "Update users as admin");
+        permissionCatalog.put("users.delete.any", "Delete users as admin");
         permissionCatalog.put("users.create.professor", "Create professor users");
         permissionCatalog.put("exams.create", "Create exams");
         permissionCatalog.put("exams.solve", "Solve exams");
@@ -85,6 +139,9 @@ public class BootstrapData {
                 "users.read.any",
                 "users.read.self",
                 "users.update.self",
+                "users.create.any",
+                "users.update.any",
+                "users.delete.any",
                 "users.create.professor",
                 "exams.create",
                 "exams.solve",

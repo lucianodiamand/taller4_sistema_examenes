@@ -1,0 +1,94 @@
+<main class="admin-users-shell">
+  <header class="page-header">
+    <div>
+      <h1>Administrar usuarios</h1>
+      <p>Gestiona cuentas de profesores y estudiantes.</p>
+    </div>
+    <nav class="header-nav">
+      <a mat-button [routerLink]="routes.admin">Inicio admin</a>
+      <a mat-button [routerLink]="routes.adminAccess">Roles y permisos</a>
+      <a mat-button [routerLink]="routes.profile">Mi perfil</a>
+    </nav>
+  </header>
+
+  <section class="content-grid">
+    <mat-card class="panel" appearance="outlined">
+      <h2>{{ editingUserId() === null ? 'Crear usuario' : 'Editar usuario' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="editor-form">
+        <mat-form-field>
+          <mat-label>Nombre</mat-label>
+          <input matInput type="text" formControlName="name" autocomplete="name" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Usuario</mat-label>
+          <input matInput type="text" formControlName="username" autocomplete="username" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Rol</mat-label>
+          <mat-select formControlName="role">
+            @for (role of managedRoles; track role) {
+              <mat-option [value]="role">{{ toRoleLabel(role) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (editingUserId() === null) {
+          <mat-form-field>
+            <mat-label>Contraseña</mat-label>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+          </mat-form-field>
+        }
+
+        @if (formError(); as message) {
+          <p class="error" role="alert">{{ message }}</p>
+        }
+
+        <div class="form-actions">
+          @if (editingUserId() !== null) {
+            <button mat-button type="button" (click)="cancelEdit()">Cancelar</button>
+          }
+          <button mat-flat-button type="submit" [disabled]="busy()">
+            {{ editingUserId() === null ? 'Crear usuario' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </mat-card>
+
+    <mat-card class="panel" appearance="outlined">
+      <h2>Lista de usuarios</h2>
+
+      <mat-form-field>
+        <mat-label>Buscar por nombre, usuario o rol</mat-label>
+        <input matInput [value]="query()" (input)="setQuery($any($event.target).value)" />
+      </mat-form-field>
+
+      @if (loading()) {
+        <p>Cargando usuarios...</p>
+      } @else if (visibleUsers().length === 0) {
+        <p>No hay usuarios para mostrar.</p>
+      } @else {
+        <div class="users-list">
+          @for (user of visibleUsers(); track user.id) {
+            <article class="user-item">
+              <div>
+                <h3>{{ user.name }}</h3>
+                <p>{{ user.username }} - {{ toRoleLabel(user.role) }}</p>
+              </div>
+              <div class="item-actions">
+                <button mat-stroked-button type="button" (click)="startEdit(user)" [disabled]="!user.manageable || busy()">
+                  Editar
+                </button>
+                <button mat-button type="button" (click)="remove(user)" [disabled]="!user.manageable || busy()">
+                  Eliminar
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </mat-card>
+  </section>
+</main>

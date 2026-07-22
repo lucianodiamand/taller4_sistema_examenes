@@ -37,11 +37,20 @@ export const routes: Routes = [
           import('./auth/pages/role-redirect/role-redirect.component').then((m) => m.RoleRedirectComponent),
       },
       {
+        path: APP_ROUTE_PATHS.profile,
+        canActivate: [roleGuard],
+        data: {
+          roles: [UserRole.ADMIN, UserRole.PROFESSOR, UserRole.STUDENT],
+          title: 'Mi perfil',
+        },
+        loadComponent: () => import('./auth/pages/profile/profile.component').then((m) => m.ProfileComponent),
+      },
+      {
         path: APP_ROUTE_PATHS.professor,
         canActivate: [roleGuard],
         data: {
           roles: [UserRole.PROFESSOR, UserRole.ADMIN],
-          title: 'Professor Home',
+          title: 'Inicio profesor',
         },
         loadComponent: () => import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
       },
@@ -50,7 +59,7 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: {
           roles: [UserRole.STUDENT, UserRole.ADMIN],
-          title: 'Student Home',
+          title: 'Inicio estudiante',
         },
         loadComponent: () => import('./student/student-exams.component').then((m) => m.StudentExamsComponent),
       },
@@ -59,9 +68,24 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: {
           roles: [UserRole.ADMIN],
-          title: 'Admin Home',
+          title: 'Inicio administrador',
         },
-        loadComponent: () => import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () => import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+          },
+          {
+            path: APP_ROUTE_PATHS.adminUsers,
+            loadComponent: () => import('./auth/pages/admin-users/admin-users.component').then((m) => m.AdminUsersComponent),
+          },
+          {
+            path: APP_ROUTE_PATHS.adminAccess,
+            loadComponent: () =>
+              import('./auth/pages/admin-access/admin-access.component').then((m) => m.AdminAccessComponent),
+          },
+        ],
       },
     ],
   },

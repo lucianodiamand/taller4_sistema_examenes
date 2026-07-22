@@ -9,6 +9,7 @@ import {
   type RefreshRequest,
   type RegisterRequest,
   type TokenResponse,
+  type UpdateMeRequest,
 } from '../contracts/auth.contracts';
 
 @Injectable({ providedIn: 'root' })
@@ -37,5 +38,9 @@ export class AuthApiService {
 
   me(): Observable<CurrentUserResponse> {
     return this.http.get<CurrentUserResponse>(AUTH_ENDPOINTS.me);
+  }
+
+  updateMe(payload: UpdateMeRequest): Observable<CurrentUserResponse> {
+    return this.http.patch<CurrentUserResponse>(AUTH_ENDPOINTS.me, payload);
   }
 }

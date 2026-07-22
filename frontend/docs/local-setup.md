@@ -1,11 +1,11 @@
-# Frontend Local Setup
+# Setup local Frontend
 
-## Requirements
+## Requisitos
 
 - Node.js `>= 22.22.3`
 - pnpm `>= 11`
 
-## Run
+## Ejecutar
 
 ```bash
 pnpm install

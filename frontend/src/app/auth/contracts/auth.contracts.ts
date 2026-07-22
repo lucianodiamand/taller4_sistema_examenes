@@ -6,9 +6,12 @@ export const APP_ROUTE_PATHS = {
   login: 'login',
   register: 'register',
   app: 'app',
+  profile: 'perfil',
   professor: 'professor',
   student: 'student',
   admin: 'admin',
+  adminUsers: 'usuarios',
+  adminAccess: 'roles-permisos',
   forbidden: 'forbidden',
 } as const;
 
@@ -16,9 +19,12 @@ export const APP_ROUTES = {
   login: `/${APP_ROUTE_PATHS.login}`,
   register: `/${APP_ROUTE_PATHS.register}`,
   app: `/${APP_ROUTE_PATHS.app}`,
+  profile: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.profile}`,
   professor: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.professor}`,
   student: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.student}`,
   admin: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.admin}`,
+  adminUsers: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.admin}/${APP_ROUTE_PATHS.adminUsers}`,
+  adminAccess: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.admin}/${APP_ROUTE_PATHS.adminAccess}`,
   forbidden: `/${APP_ROUTE_PATHS.forbidden}`,
 } as const;
 
@@ -29,6 +35,9 @@ export const AUTH_ENDPOINTS = {
   logout: '/api/auth/logout',
   logoutAll: '/api/auth/logout-all',
   me: '/api/users/me',
+  users: '/api/users',
+  roles: '/api/roles',
+  permissions: '/api/permissions',
 } as const;
 
 export const HTTP_STATUS = {
@@ -73,6 +82,11 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface UpdateMeRequest {
+  name?: string;
+  password?: string | null;
+}
+
 export interface RefreshRequest {
   refreshToken: string;
 }
@@ -90,6 +104,63 @@ export interface CurrentUserResponse {
   name: string;
   username: string;
   role: UserRole;
+}
+
+export interface UserAdminResponse {
+  id: number;
+  name: string;
+  username: string;
+  role: UserRole;
+  self: boolean;
+  manageable: boolean;
+}
+
+export interface CreateUserAdminRequest {
+  name: string;
+  username: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UpdateUserAdminRequest {
+  name?: string;
+  password?: string;
+  role?: UserRole;
+}
+
+export interface RoleAdminResponse {
+  id: number;
+  name: UserRole;
+  description: string | null;
+}
+
+export interface UpdateRoleRequest {
+  description: string;
+}
+
+export interface RolePermissionsResponse {
+  role: UserRole;
+  permissionCodes: string[];
+}
+
+export interface ReplaceRolePermissionsRequest {
+  permissionCodes: string[];
+}
+
+export interface PermissionResponse {
+  id: number;
+  code: string;
+  description: string | null;
+}
+
+export interface CreatePermissionRequest {
+  code: string;
+  description: string;
+}
+
+export interface UpdatePermissionRequest {
+  code: string;
+  description: string;
 }
 
 export interface AuthSession {

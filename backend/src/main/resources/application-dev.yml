@@ -37,6 +37,13 @@ app:
     refresh-ttl: 7d
   bootstrap:
     seed-admin: true
+    seed-local-test-users: true
     admin-username: admin
     admin-password: admin123
     admin-name: System Admin
+    professor-username: profesor
+    professor-password: profesor123
+    professor-name: Usuario Profesor
+    student-username: estudiante
+    student-password: estudiante123
+    student-name: Usuario Estudiante

@@ -1,0 +1,128 @@
+<div class="grading-page">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Corregir exámenes</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loading()) {
+        <p>Cargando resoluciones...</p>
+      } @else if (error()) {
+        <p class="error">{{ error() }}</p>
+      } @else if (attempts().length === 0) {
+        <p>No hay resoluciones de tus exámenes todavía.</p>
+      } @else {
+        <div class="attempt-list">
+          @for (attempt of attempts(); track attempt.attemptId) {
+            <mat-card class="attempt-card" appearance="outlined">
+              <mat-card-content>
+                <div class="attempt-row">
+                  <div class="attempt-info">
+                    <strong>{{ attempt.studentName }}</strong>
+                    <span class="status" [class.status--graded]="attempt.status === 'GRADED'">
+                      {{ statusLabel(attempt.status) }}
+                    </span>
+                  </div>
+                  @if (attempt.finalScore !== null) {
+                    <span class="score">Nota: {{ attempt.finalScore }}</span>
+                  }
+                </div>
+                <div class="attempt-actions">
+                  @if (canGrade(attempt)) {
+                    <button mat-stroked-button (click)="openAttempt(attempt.attemptId)">Corregir</button>
+                  } @else if (attempt.status === 'GRADED') {
+                    <button mat-button (click)="openAttempt(attempt.attemptId)">Ver corrección</button>
+                  } @else {
+                    <span class="hint">Todavía no fue enviado por el estudiante</span>
+                  }
+                </div>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #correctionDialog>
+  @if (activeAttempt(); as attempt) {
+    <div mat-dialog-title class="attempt-title">
+      <span>{{ attempt.studentName }}</span>
+      <span class="status" [class.status--graded]="attempt.status === 'GRADED'">
+        {{ statusLabel(attempt.status) }}
+      </span>
+    </div>
+
+    <mat-dialog-content class="attempt-content">
+      @if (attempt.finalScore !== null) {
+        <p class="final-score">Nota final: {{ attempt.finalScore }}</p>
+      }
+
+      @for (question of attempt.questions; track question.attemptQuestionId) {
+        <div class="question-block">
+          <p class="statement">{{ question.questionOrder }}. {{ question.statement }}</p>
+          <p class="answer">Respuesta: {{ question.answerText || '(sin respuesta)' }}</p>
+
+          <div class="grade-inputs">
+            <mat-form-field appearance="outline">
+              <mat-label>Puntaje</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                [ngModel]="draftFor(question.attemptQuestionId).awardedScore"
+                (ngModelChange)="updateScore(question.attemptQuestionId, $event)"
+                [disabled]="attempt.status !== 'SUBMITTED'"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Comentario</mat-label>
+              <input
+                matInput
+                [ngModel]="draftFor(question.attemptQuestionId).reviewComment"
+                (ngModelChange)="updateComment(question.attemptQuestionId, $event)"
+                [disabled]="attempt.status !== 'SUBMITTED'"
+              />
+            </mat-form-field>
+
+            @if (attempt.status === 'SUBMITTED') {
+              <button
+                mat-button
+                [disabled]="saving()"
+                (click)="saveScore(attempt.attemptId, question.attemptQuestionId, question.questionId)"
+              >
+                Guardar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="attempt-actions">
+      <button mat-button mat-dialog-close>Cerrar</button>
+      @if (attempt.status === 'SUBMITTED') {
+        <button
+          mat-flat-button
+          color="primary"
+          [disabled]="!allQuestionsGraded() || closing()"
+          (click)="closeGrading()"
+        >
+          Cerrar corrección
+        </button>
+      }
+    </mat-dialog-actions>
+  }
+</ng-template>
+
+<ng-template #confirmCloseDialog>
+  <h2 mat-dialog-title>Cerrar corrección</h2>
+  <mat-dialog-content>
+    <p>¿Cerrar la corrección? Después no vas a poder modificar las notas.</p>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">Cancelar</button>
+    <button mat-flat-button color="primary" [mat-dialog-close]="true">Cerrar corrección</button>
+  </mat-dialog-actions>
+</ng-template>

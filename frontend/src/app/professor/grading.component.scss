@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  color: #172033;
+  background: #f4f6fa;
+}
+
+.grading-page {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 64px;
+}
+
+.error {
+  color: #8c2525;
+}
+
+.attempt-list {
+  display: grid;
+  gap: 12px;
+}
+
+.attempt-card {
+  border: 1px solid #dce2ec;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(30, 43, 68, 0.06);
+}
+
+.attempt-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.attempt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #8a5700;
+  background: #fff1d6;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status--graded {
+  color: #246444;
+  background: #def4e8;
+}
+
+.score {
+  color: #246444;
+  font-weight: 700;
+}
+
+.hint {
+  color: #7b8496;
+  font-size: 0.85rem;
+}
+
+.attempt-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.attempt-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attempt-content {
+  display: grid;
+  gap: 16px;
+}
+
+.final-score {
+  color: #246444;
+  font-weight: 700;
+}
+
+.question-block {
+  padding: 16px;
+  border: 1px solid #dce2ec;
+  border-radius: 12px;
+}
+
+.statement {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.answer {
+  margin: 0 0 12px;
+  color: #657089;
+}
+
+.grade-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.grade-inputs mat-form-field:first-child {
+  width: 120px;
+}
+
+.grade-inputs mat-form-field:nth-child(2) {
+  flex: 1;
+  min-width: 200px;
+}
+
+@media (max-width: 680px) {
+  .grading-page {
+    width: calc(100% - 20px);
+    padding-top: 24px;
+  }
+
+  .attempt-row {
+    flex-direction: column;
+  }
+
+  .grade-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grade-inputs mat-form-field:first-child,
+  .grade-inputs mat-form-field:nth-child(2) {
+    width: 100%;
+  }
+}

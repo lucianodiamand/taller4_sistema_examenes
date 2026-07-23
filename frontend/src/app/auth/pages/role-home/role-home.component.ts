@@ -33,6 +33,8 @@ export class RoleHomeComponent {
   });
   protected readonly username = computed(() => this.authService.currentSession()?.user?.username ?? 'desconocido');
   protected readonly isAdmin = computed(() => this.role() === UserRole.ADMIN);
+  // GradingController solo autoriza hasRole('PROFESSOR'); ADMIN no entra aca aunque
+  // si entre al resto de /professor.
   protected readonly isProfessor = computed(() => this.role() === UserRole.PROFESSOR);
   protected readonly routes = APP_ROUTES;
 

@@ -5,124 +5,122 @@
       <h1>Mis exámenes</h1>
       <p>Desde acá podés comenzar un examen, guardar tus respuestas y revisar tus resultados.</p>
     </div>
-    <button class="secondary-button" type="button" (click)="loadData()" [disabled]="loading">
-      Actualizar
-    </button>
+    <nav class="header-nav" aria-label="Navegación del estudiante">
+      <a mat-button [routerLink]="routes.student">Inicio estudiante</a>
+      <a mat-button [routerLink]="routes.profile">Mi perfil</a>
+      <button mat-stroked-button type="button" (click)="loadData()" [disabled]="loading()">Actualizar</button>
+      <button mat-flat-button type="button" (click)="logout()">Cerrar sesión</button>
+    </nav>
   </header>
 
-  @if (error && !activeAttempt) {
-    <div class="notice error">{{ error }}</div>
+  @if (error() && !activeAttempt()) {
+    <mat-card class="notice error" appearance="outlined">{{ error() }}</mat-card>
   }
 
-  <nav class="tabs" aria-label="Secciones de exámenes">
-    <button
-      type="button"
-      [class.active]="section === 'available'"
-      (click)="changeSection('available')"
-    >
-      Disponibles
-    </button>
-    <button
-      type="button"
-      [class.active]="section === 'history'"
-      (click)="changeSection('history')"
-    >
-      Mis resoluciones
-    </button>
-  </nav>
+  <mat-tab-group
+    class="sections-tabs"
+    [selectedIndex]="selectedTabIndex"
+    (selectedIndexChange)="changeTab($event)"
+    aria-label="Secciones de exámenes"
+  >
+    <mat-tab label="Disponibles">
+      @if (loading()) {
+        <mat-card class="empty-state" appearance="outlined">Cargando información...</mat-card>
+      } @else {
+        <section class="card-grid">
+          @for (exam of availableExams(); track exam.examCallId) {
+            <mat-card class="exam-card" appearance="outlined">
+              <div class="card-heading">
+                <div>
+                  <span class="status in-progress">
+                    {{ exam.attemptId ? 'En curso' : 'Disponible' }}
+                  </span>
+                  <h2>{{ exam.title }}</h2>
+                </div>
+                <strong>{{ exam.durationMinutes }} min</strong>
+              </div>
 
-  @if (loading) {
-    <section class="empty-state">Cargando información...</section>
-  } @else if (section === 'available') {
-    <section class="card-grid">
-      @for (exam of availableExams; track exam.examCallId) {
-        <article class="exam-card">
-          <div class="card-heading">
-            <div>
-              <span class="status in-progress">
-                {{ exam.attemptId ? 'En curso' : 'Disponible' }}
-              </span>
-              <h2>{{ exam.title }}</h2>
-            </div>
-            <strong>{{ exam.durationMinutes }} min</strong>
-          </div>
+              <p>{{ exam.description || 'Sin descripción.' }}</p>
 
-          <p>{{ exam.description || 'Sin descripción.' }}</p>
+              <dl class="exam-data">
+                <div>
+                  <dt>Profesor</dt>
+                  <dd>{{ exam.professorName || 'Sin informar' }}</dd>
+                </div>
+                <div>
+                  <dt>Cierre</dt>
+                  <dd>{{ exam.endsAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+                <div>
+                  <dt>Cupos</dt>
+                  <dd>{{ exam.remainingCapacity === null ? 'Sin límite' : exam.remainingCapacity }}</dd>
+                </div>
+              </dl>
 
-          <dl class="exam-data">
-            <div>
-              <dt>Profesor</dt>
-              <dd>{{ exam.professorName || 'Sin informar' }}</dd>
-            </div>
-            <div>
-              <dt>Cierre</dt>
-              <dd>{{ exam.endsAt | date: 'dd/MM/yyyy HH:mm' }}</dd>
-            </div>
-            <div>
-              <dt>Cupos</dt>
-              <dd>{{ exam.remainingCapacity === null ? 'Sin límite' : exam.remainingCapacity }}</dd>
-            </div>
-          </dl>
-
-          <button class="primary-button" type="button" (click)="startOrContinue(exam)">
-            {{ exam.attemptId ? 'Continuar examen' : 'Comenzar examen' }}
-          </button>
-        </article>
-      } @empty {
-        <div class="empty-state full-width">
-          No hay exámenes disponibles en este momento.
-        </div>
+              <mat-card-actions align="end">
+                <button mat-flat-button type="button" (click)="startOrContinue(exam)">
+                  {{ exam.attemptId ? 'Continuar examen' : 'Comenzar examen' }}
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          } @empty {
+            <mat-card class="empty-state full-width" appearance="outlined">
+              No hay exámenes disponibles en este momento.
+            </mat-card>
+          }
+        </section>
       }
-    </section>
-  } @else {
-    <section class="history-list">
-      @for (attempt of attempts; track attempt.attemptId) {
-        <article class="history-item">
-          <div>
-            <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
-              {{ statusLabel(attempt.status) }}
-            </span>
-            <h2>{{ attempt.examTitle }}</h2>
-            <p>
-              Iniciado el {{ attempt.startedAt | date: 'dd/MM/yyyy HH:mm' }}
-              @if (attempt.submittedAt) {
-                · Enviado el {{ attempt.submittedAt | date: 'dd/MM/yyyy HH:mm' }}
-              }
-            </p>
-          </div>
+    </mat-tab>
 
-          <div class="history-actions">
-            @if (attempt.status === 'GRADED') {
-              <strong class="score">Nota: {{ attempt.finalScore ?? '-' }}</strong>
-            }
-            <button class="secondary-button" type="button" (click)="openAttempt(attempt.attemptId)">
-              {{ attempt.status === 'IN_PROGRESS' ? 'Continuar' : 'Ver detalle' }}
-            </button>
-          </div>
-        </article>
-      } @empty {
-        <div class="empty-state">Todavía no tenés resoluciones registradas.</div>
+    <mat-tab label="Mis resoluciones">
+      @if (loading()) {
+        <mat-card class="empty-state" appearance="outlined">Cargando información...</mat-card>
+      } @else {
+        <section class="history-list">
+          @for (attempt of attempts(); track attempt.attemptId) {
+            <mat-card class="history-item" appearance="outlined">
+              <div>
+                <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
+                  {{ statusLabel(attempt.status) }}
+                </span>
+                <h2>{{ attempt.examTitle }}</h2>
+                <p>
+                  Iniciado el {{ attempt.startedAt | date: 'dd/MM/yyyy HH:mm' }}
+                  @if (attempt.submittedAt) {
+                    · Enviado el {{ attempt.submittedAt | date: 'dd/MM/yyyy HH:mm' }}
+                  }
+                </p>
+              </div>
+
+              <div class="history-actions">
+                @if (attempt.status === 'GRADED') {
+                  <strong class="score">Nota: {{ attempt.finalScore ?? '-' }}</strong>
+                }
+                <button mat-stroked-button type="button" (click)="openAttempt(attempt.attemptId)">
+                  {{ attempt.status === 'IN_PROGRESS' ? 'Continuar' : 'Ver detalle' }}
+                </button>
+              </div>
+            </mat-card>
+          } @empty {
+            <mat-card class="empty-state" appearance="outlined">Todavía no tenés resoluciones registradas.</mat-card>
+          }
+        </section>
       }
-    </section>
-  }
+    </mat-tab>
+  </mat-tab-group>
 </main>
 
-@if (activeAttempt; as attempt) {
-  <div class="attempt-backdrop">
-    <section class="attempt-panel" role="dialog" aria-modal="true" aria-labelledby="attempt-title">
-      <header class="attempt-header">
-        <div>
-          <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
-            {{ statusLabel(attempt.status) }}
-          </span>
-          <h2 id="attempt-title">{{ attempt.examTitle }}</h2>
-          <p>{{ attempt.examDescription || 'Sin descripción.' }}</p>
-        </div>
-        <button class="close-button" type="button" (click)="closeAttempt()" aria-label="Cerrar">
-          ×
-        </button>
-      </header>
+<ng-template #attemptDialog>
+  @if (activeAttempt(); as attempt) {
+    <div mat-dialog-title class="attempt-title">
+      <span class="status" [class]="'status ' + attempt.status.toLowerCase()">
+        {{ statusLabel(attempt.status) }}
+      </span>
+      <h2>{{ attempt.examTitle }}</h2>
+      <p>{{ attempt.examDescription || 'Sin descripción.' }}</p>
+    </div>
 
+    <mat-dialog-content class="attempt-content">
       <div class="attempt-info">
         <span>Inicio: {{ attempt.startedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
         <span>Límite: {{ attempt.deadline | date: 'dd/MM/yyyy HH:mm' }}</span>
@@ -131,29 +129,32 @@
         }
       </div>
 
-      @if (message) {
-        <div class="notice success">{{ message }}</div>
+      @if (message()) {
+        <mat-card class="notice success" appearance="outlined">{{ message() }}</mat-card>
       }
-      @if (error) {
-        <div class="notice error">{{ error }}</div>
+      @if (error()) {
+        <mat-card class="notice error" appearance="outlined">{{ error() }}</mat-card>
       }
 
       <div class="questions">
         @for (question of attempt.questions; track question.attemptQuestionId) {
-          <article class="question-card">
+          <mat-card class="question-card" appearance="outlined">
             <div class="question-heading">
               <h3>{{ question.order }}. {{ question.statement }}</h3>
               <span>{{ question.points }} puntos · {{ questionTypeLabel(question.type) }}</span>
             </div>
 
-            <label [for]="'answer-' + question.attemptQuestionId">Respuesta</label>
-            <textarea
-              [id]="'answer-' + question.attemptQuestionId"
-              rows="4"
-              [(ngModel)]="question.answerText"
-              [disabled]="!isEditable(attempt.status)"
-              placeholder="Escribí tu respuesta"
-            ></textarea>
+            <mat-form-field class="answer-field" appearance="outline">
+              <mat-label>Respuesta</mat-label>
+              <textarea
+                matInput
+                [id]="'answer-' + question.attemptQuestionId"
+                rows="4"
+                [(ngModel)]="question.answerText"
+                [disabled]="!isEditable(attempt.status)"
+                placeholder="Escribí tu respuesta"
+              ></textarea>
+            </mat-form-field>
 
             @if (attempt.status === 'GRADED') {
               <div class="review">
@@ -163,21 +164,21 @@
                 }
               </div>
             }
-          </article>
+          </mat-card>
         }
       </div>
+    </mat-dialog-content>
 
-      <footer class="attempt-actions">
-        <button class="secondary-button" type="button" (click)="closeAttempt()">Cerrar</button>
-        @if (isEditable(attempt.status)) {
-          <button class="secondary-button" type="button" (click)="saveProgress()" [disabled]="saving">
-            {{ saving ? 'Guardando...' : 'Guardar progreso' }}
-          </button>
-          <button class="primary-button" type="button" (click)="submitAttempt()" [disabled]="saving">
-            Enviar examen
-          </button>
-        }
-      </footer>
-    </section>
-  </div>
-}
+    <mat-dialog-actions align="end" class="attempt-actions">
+      <button mat-button type="button" (click)="closeAttempt()">Cerrar</button>
+      @if (isEditable(attempt.status)) {
+        <button mat-stroked-button type="button" (click)="saveProgress()" [disabled]="saving()">
+          {{ saving() ? 'Guardando...' : 'Guardar progreso' }}
+        </button>
+        <button mat-flat-button type="button" (click)="submitAttempt()" [disabled]="saving()">
+          Enviar examen
+        </button>
+      }
+    </mat-dialog-actions>
+  }
+</ng-template>

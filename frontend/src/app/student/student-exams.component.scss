@@ -15,7 +15,6 @@
 .card-heading,
 .history-item,
 .history-actions,
-.attempt-header,
 .question-heading,
 .attempt-actions {
   display: flex;
@@ -26,9 +25,15 @@
 
 .page-header,
 .card-heading,
-.attempt-header,
 .question-heading {
   align-items: flex-start;
+}
+
+.header-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .eyebrow {
@@ -54,43 +59,13 @@ h1 {
 .page-header p,
 .exam-card > p,
 .history-item p,
-.attempt-header p {
+.attempt-title p {
   margin-bottom: 0;
   color: #657089;
 }
 
-.tabs {
-  display: flex;
-  width: fit-content;
-  gap: 6px;
-  margin: 28px 0 24px;
-  padding: 5px;
-  border: 1px solid #dce2ec;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.tabs button,
-.primary-button,
-.secondary-button,
-.close-button {
-  border-radius: 8px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tabs button {
-  padding: 10px 16px;
-  border: 0;
-  color: #5e687b;
-  background: transparent;
-}
-
-.tabs button.active,
-.primary-button {
-  color: #fff;
-  background: #3157a4;
+.sections-tabs {
+  margin-top: 28px;
 }
 
 .card-grid {
@@ -144,23 +119,6 @@ h1 {
   overflow-wrap: anywhere;
   font-size: 0.88rem;
   font-weight: 600;
-}
-
-.primary-button,
-.secondary-button {
-  min-height: 42px;
-  padding: 10px 16px;
-}
-
-.primary-button {
-  border: 1px solid #3157a4;
-}
-
-.secondary-button,
-.close-button {
-  border: 1px solid #cdd5e2;
-  color: #28354e;
-  background: #fff;
 }
 
 button:disabled {
@@ -233,45 +191,18 @@ button:disabled {
   background: #e2f5e9;
 }
 
-.attempt-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
+.attempt-title {
   display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(16, 24, 40, 0.55);
+  gap: 8px;
 }
 
-.attempt-panel {
-  width: min(900px, 100%);
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(10, 18, 34, 0.28);
-}
-
-.attempt-header,
-.attempt-info,
-.attempt-actions {
-  padding: 20px 24px;
-}
-
-.attempt-header {
-  border-bottom: 1px solid #e2e7ef;
-}
-
-.attempt-header h2 {
+.attempt-title h2 {
   margin: 8px 0 6px;
 }
 
-.close-button {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  font-size: 1.5rem;
-  line-height: 1;
+.attempt-content {
+  display: grid;
+  gap: 14px;
 }
 
 .attempt-info {
@@ -282,15 +213,10 @@ button:disabled {
   font-size: 0.9rem;
 }
 
-.attempt-panel > .notice {
-  margin-right: 24px;
-  margin-left: 24px;
-}
-
 .questions {
   display: grid;
   gap: 14px;
-  padding: 4px 24px 24px;
+  padding: 0;
 }
 
 .question-card {
@@ -315,28 +241,8 @@ button:disabled {
   font-size: 0.78rem;
 }
 
-.question-card label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.question-card textarea {
+.answer-field {
   width: 100%;
-  resize: vertical;
-  box-sizing: border-box;
-  padding: 11px 12px;
-  border: 1px solid #cdd5e2;
-  border-radius: 8px;
-  color: #172033;
-  background: #fff;
-  font: inherit;
-}
-
-.question-card textarea:disabled {
-  color: #465269;
-  background: #f5f6f8;
 }
 
 .review {
@@ -353,10 +259,6 @@ button:disabled {
 
 .attempt-actions {
   justify-content: flex-end;
-  position: sticky;
-  bottom: 0;
-  border-top: 1px solid #e2e7ef;
-  background: #fff;
 }
 
 @media (max-width: 680px) {
@@ -374,31 +276,20 @@ button:disabled {
     flex-direction: column;
   }
 
-  .tabs {
-    width: 100%;
-  }
-
-  .tabs button {
-    flex: 1;
-  }
-
   .exam-data {
     grid-template-columns: 1fr;
+  }
+
+  .header-nav {
+    justify-content: stretch;
+  }
+
+  .header-nav > * {
+    width: 100%;
   }
 
   .history-actions button,
   .attempt-actions button {
     width: 100%;
-  }
-
-  .attempt-backdrop {
-    padding: 0;
-  }
-
-  .attempt-panel {
-    width: 100%;
-    max-height: 100vh;
-    min-height: 100vh;
-    border-radius: 0;
   }
 }

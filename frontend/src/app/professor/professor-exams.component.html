@@ -1,0 +1,262 @@
+<main class="professor-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Panel del profesor</span>
+      <h1>Gestion de examenes</h1>
+      <p>Organiza tus examenes por etapas para trabajar sin sobrecargar la pantalla.</p>
+    </div>
+
+    <nav class="header-nav" aria-label="Navegacion del profesor">
+      <a mat-button [routerLink]="routes.professor">Inicio profesor</a>
+      <a mat-button [routerLink]="routes.profile">Mi perfil</a>
+      <button mat-stroked-button type="button" (click)="loadExams()" [disabled]="loadingExams()">Actualizar</button>
+      <button mat-flat-button type="button" (click)="logout()">Cerrar sesion</button>
+    </nav>
+  </header>
+
+  @if (loadError(); as errorMessage) {
+    <mat-card class="notice error" appearance="outlined" role="alert" aria-live="polite">{{ errorMessage }}</mat-card>
+  }
+
+  <mat-card class="tabs-shell" appearance="outlined">
+    <mat-tab-group
+      [selectedIndex]="selectedTabIndex()"
+      (selectedIndexChange)="selectTab($event)"
+      aria-label="Secciones para gestionar examenes"
+    >
+      <mat-tab label="Mis examenes">
+        @if (loadingExams()) {
+          <div class="tab-body">
+            <mat-card class="empty-state" appearance="outlined">Cargando examenes...</mat-card>
+          </div>
+        } @else {
+          <section class="tab-body card-grid">
+            @for (exam of exams(); track exam.id) {
+              <mat-card class="exam-card" appearance="outlined">
+                <div class="card-header">
+                  <div>
+                    <h2>{{ exam.title }}</h2>
+                    <p>{{ exam.description || 'Sin descripcion.' }}</p>
+                  </div>
+                  <strong>{{ exam.durationMinutes }} min</strong>
+                </div>
+
+                <mat-card-actions align="end">
+                  <button mat-stroked-button type="button" (click)="jumpToCall(exam)">Crear llamado</button>
+                </mat-card-actions>
+              </mat-card>
+            } @empty {
+              <mat-card class="empty-state full-width" appearance="outlined">
+                Todavia no creaste examenes. Usa la pestana "Crear examen" para comenzar.
+              </mat-card>
+            }
+          </section>
+        }
+      </mat-tab>
+
+      <mat-tab label="Crear examen">
+        <section class="tab-body">
+          <form [formGroup]="examForm" (ngSubmit)="submitExam()" class="form-grid">
+            <mat-form-field>
+              <mat-label>Titulo</mat-label>
+              <input matInput type="text" formControlName="title" autocomplete="off" />
+              @if (examForm.controls.title.touched && examForm.controls.title.hasError('required')) {
+                <mat-error>El titulo es obligatorio.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Duracion (minutos)</mat-label>
+              <input matInput type="number" min="1" formControlName="durationMinutes" />
+              @if (examForm.controls.durationMinutes.touched && examForm.controls.durationMinutes.hasError('required')) {
+                <mat-error>La duracion es obligatoria.</mat-error>
+              }
+              @if (examForm.controls.durationMinutes.touched && examForm.controls.durationMinutes.hasError('min')) {
+                <mat-error>La duracion debe ser al menos 1 minuto.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+              <mat-label>Descripcion</mat-label>
+              <textarea matInput rows="4" formControlName="description"></textarea>
+              <mat-hint align="end">{{ examForm.controls.description.value?.length ?? 0 }}/2000</mat-hint>
+              @if (examForm.controls.description.touched && examForm.controls.description.hasError('maxlength')) {
+                <mat-error>La descripcion no puede superar 2000 caracteres.</mat-error>
+              }
+            </mat-form-field>
+
+            <section class="questions-section full-width" formArrayName="questions">
+              <div class="questions-header">
+                <h3>Preguntas</h3>
+                <button mat-stroked-button type="button" (click)="addQuestion()">Agregar pregunta</button>
+              </div>
+
+              @for (questionControl of questionControls(); track $index) {
+                <mat-card class="question-card" appearance="outlined" [formGroupName]="$index">
+                  <mat-form-field class="full-width">
+                    <mat-label>Enunciado</mat-label>
+                    <textarea matInput rows="3" formControlName="statement"></textarea>
+                    @if (questionControl.controls.statement.touched && questionControl.controls.statement.hasError('required')) {
+                      <mat-error>El enunciado es obligatorio.</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <div class="question-row">
+                    <mat-form-field>
+                      <mat-label>Tipo</mat-label>
+                      <mat-select formControlName="type">
+                        <mat-option value="OPEN">Respuesta abierta</mat-option>
+                        <mat-option value="TRUE_FALSE">Verdadero o falso</mat-option>
+                        <mat-option value="MULTIPLE_CHOICE">Opcion multiple</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field>
+                      <mat-label>Puntos</mat-label>
+                      <input matInput type="number" min="0" formControlName="points" />
+                      @if (questionControl.controls.points.touched && questionControl.controls.points.hasError('required')) {
+                        <mat-error>Los puntos son obligatorios.</mat-error>
+                      }
+                      @if (questionControl.controls.points.touched && questionControl.controls.points.hasError('min')) {
+                        <mat-error>Los puntos no pueden ser negativos.</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <button
+                      mat-button
+                      type="button"
+                      (click)="removeQuestion($index)"
+                      [disabled]="questionControls().length <= 1"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </mat-card>
+              }
+
+              @if (hasExamQuestionsMinError()) {
+                <p class="validation-text" role="alert">El examen debe tener al menos una pregunta.</p>
+              }
+            </section>
+
+            @if (createExamError(); as errorMessage) {
+              <mat-card class="notice error full-width" appearance="outlined" role="alert" aria-live="polite">
+                {{ errorMessage }}
+              </mat-card>
+            }
+
+            <div class="actions full-width">
+              <button mat-flat-button type="submit" [disabled]="savingExam()">
+                @if (savingExam()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <span>Crear examen</span>
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      </mat-tab>
+
+      <mat-tab label="Crear llamado">
+        <section class="tab-body">
+          <form [formGroup]="callForm" (ngSubmit)="submitCall()" class="form-grid">
+            <mat-form-field class="full-width">
+              <mat-label>Examen</mat-label>
+              <mat-select formControlName="examId" (valueChange)="onCallExamChanged($event)">
+                @for (exam of exams(); track exam.id) {
+                  <mat-option [value]="exam.id">{{ exam.title }} ({{ exam.durationMinutes }} min)</mat-option>
+                }
+              </mat-select>
+              @if (callForm.controls.examId.touched && callForm.controls.examId.hasError('required')) {
+                <mat-error>Selecciona un examen.</mat-error>
+              }
+            </mat-form-field>
+
+            <section class="calls-section full-width" aria-live="polite">
+              <div class="calls-header">
+                <h3>Llamados creados</h3>
+                @if (callForm.controls.examId.value) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="onCallExamChanged(callForm.controls.examId.value)"
+                    [disabled]="loadingCalls()"
+                  >
+                    Actualizar llamados
+                  </button>
+                }
+              </div>
+
+              @if (!callForm.controls.examId.value) {
+                <mat-card class="empty-state" appearance="outlined">Selecciona un examen para ver sus llamados.</mat-card>
+              } @else if (loadingCalls()) {
+                <mat-card class="empty-state" appearance="outlined">Cargando llamados...</mat-card>
+              } @else if (callsError(); as callsErrorMessage) {
+                <mat-card class="notice error" appearance="outlined" role="alert">{{ callsErrorMessage }}</mat-card>
+              } @else {
+                <div class="calls-grid">
+                  @for (call of examCalls(); track call.id) {
+                    <mat-card class="call-card" appearance="outlined">
+                      <p><strong>Inicio:</strong> {{ call.startDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+                      <p><strong>Fin:</strong> {{ call.endDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+                      <p><strong>Cupo:</strong> {{ call.totalCapacity === null ? 'Ilimitado' : call.totalCapacity }}</p>
+                      <p><strong>Inscriptos:</strong> {{ call.currentEnrollment }}</p>
+                    </mat-card>
+                  } @empty {
+                    <mat-card class="empty-state" appearance="outlined">Este examen todavia no tiene llamados creados.</mat-card>
+                  }
+                </div>
+              }
+            </section>
+
+            <mat-form-field>
+              <mat-label>Inicio</mat-label>
+              <input matInput type="datetime-local" formControlName="startDate" />
+              @if (callForm.controls.startDate.touched && callForm.controls.startDate.hasError('required')) {
+                <mat-error>La fecha de inicio es obligatoria.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Fin</mat-label>
+              <input matInput type="datetime-local" formControlName="endDate" />
+              @if (callForm.controls.endDate.touched && callForm.controls.endDate.hasError('required')) {
+                <mat-error>La fecha de fin es obligatoria.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field>
+              <mat-label>Cupo total (opcional)</mat-label>
+              <input matInput type="number" min="1" formControlName="totalCapacity" />
+              <mat-hint>Dejar vacio para cupo ilimitado.</mat-hint>
+              @if (callForm.controls.totalCapacity.touched && callForm.controls.totalCapacity.hasError('min')) {
+                <mat-error>Si se informa, el cupo debe ser al menos 1.</mat-error>
+              }
+            </mat-form-field>
+
+            @if (hasCallDateRangeError()) {
+              <p class="validation-text full-width" role="alert">La fecha de fin debe ser posterior a la fecha de inicio.</p>
+            }
+
+            @if (createCallError(); as errorMessage) {
+              <mat-card class="notice error full-width" appearance="outlined" role="alert" aria-live="polite">
+                {{ errorMessage }}
+              </mat-card>
+            }
+
+            <div class="actions full-width">
+              <button mat-flat-button type="submit" [disabled]="savingCall()">
+                @if (savingCall()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <span>Crear llamado</span>
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</main>

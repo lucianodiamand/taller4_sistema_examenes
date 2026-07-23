@@ -14,6 +14,9 @@ import java.util.Optional;
 
 public interface ExamCallRepository extends JpaRepository<ExamCall, Long> {
 
+    @EntityGraph(attributePaths = {"exam"})
+    List<ExamCall> findByExamIdOrderByStartDateDesc(Long examId);
+
     /**
      * Trae únicamente convocatorias abiertas y deja cargados los datos del examen
      * que necesita el listado del estudiante.

@@ -33,6 +33,7 @@ export class RoleHomeComponent {
   });
   protected readonly username = computed(() => this.authService.currentSession()?.user?.username ?? 'desconocido');
   protected readonly isAdmin = computed(() => this.role() === UserRole.ADMIN);
+  protected readonly isProfessor = computed(() => this.role() === UserRole.PROFESSOR);
   protected readonly routes = APP_ROUTES;
 
   protected logout(): void {

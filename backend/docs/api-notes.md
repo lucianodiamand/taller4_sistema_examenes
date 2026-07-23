@@ -6,10 +6,12 @@ Notas de referencia rápida para endpoints MVP.
 
 - Local: `http://localhost:8080/api`
 
-## Endpoints de examenes
+## Endpoints de examenes (profesor)
 
-- `GET /api/exams`
-- `POST /api/exams`
+- `GET /api/exams` — lista solo los examenes del profesor autenticado.
+- `POST /api/exams` — crea examen junto con sus preguntas, en una sola transaccion.
+- `GET /api/exams/{examId}/calls` — lista las convocatorias de un examen propio.
+- `POST /api/exams/{examId}/calls` — abre una convocatoria (ventana de fechas + cupo, cupo opcional = ilimitado).
 
 ## Endpoints de examenes de estudiante (EMA)
 
@@ -77,3 +79,4 @@ Restricciones:
 - Documentar cambios de payloads en PR de backend.
 - Los endpoints del estudiante toman su identidad desde el JWT; no reciben `studentId`.
 - Los endpoints de corrección e historial toman identidad desde JWT (`CurrentUser`); no reciben `studentId` ni `professorId`.
+- Los endpoints de examenes tambien toman el `professorId` desde el JWT, nunca del body (fix de seguridad: antes se podia crear un examen "a nombre de" otro profesor).

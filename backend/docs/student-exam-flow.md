@@ -66,3 +66,13 @@ La nota, el puntaje por pregunta y los comentarios se exponen al estudiante sola
 - No se aceptan preguntas que no pertenezcan al intento.
 - No se aceptan respuestas duplicadas en una misma petición.
 - Una resolución enviada no puede volver a editarse.
+
+## Datos demo para localhost
+
+Con perfil `dev` el backend crea datos demo para pruebas de estudiante:
+
+- Usuario estudiante: `estudiante` / `estudiante123`
+- Usuario profesor: `profesor` / `profesor123`
+- Examen demo: `[DEMO] Simulacro de Programacion IV`
+  - Una convocatoria abierta para iniciar intento desde `/app/student`.
+  - Un intento previo en estado `GRADED` para ver historial y comentarios.

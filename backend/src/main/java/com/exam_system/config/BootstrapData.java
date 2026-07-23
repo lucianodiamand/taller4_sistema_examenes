@@ -1,5 +1,16 @@
 package com.exam_system.config;
 
+import com.exam_system.exam.domain.AttemptQuestion;
+import com.exam_system.exam.domain.AttemptStatus;
+import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.ExamAttempt;
+import com.exam_system.exam.domain.ExamCall;
+import com.exam_system.exam.domain.Question;
+import com.exam_system.exam.domain.QuestionType;
+import com.exam_system.exam.repository.ExamAttemptRepository;
+import com.exam_system.exam.repository.ExamCallRepository;
+import com.exam_system.exam.repository.ExamRepository;
+import com.exam_system.exam.repository.QuestionRepository;
 import com.exam_system.user.domain.Permission;
 import com.exam_system.user.domain.Role;
 import com.exam_system.user.domain.User;
@@ -13,6 +24,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +35,33 @@ import java.util.Set;
 public class BootstrapData {
 
     private static final Logger logger = LoggerFactory.getLogger(BootstrapData.class);
+    private static final String DEMO_EXAM_TITLE = "[DEMO] Simulacro de Programacion IV";
+    private static final LocalDateTime DEMO_OPEN_CALL_START = LocalDateTime.of(2024, 1, 1, 0, 0);
+    private static final LocalDateTime DEMO_OPEN_CALL_END = LocalDateTime.of(2099, 12, 31, 23, 59);
+    private static final LocalDateTime DEMO_HISTORY_CALL_START = LocalDateTime.of(2024, 2, 1, 8, 0);
+    private static final LocalDateTime DEMO_HISTORY_CALL_END = LocalDateTime.of(2024, 2, 15, 18, 0);
+    private static final LocalDateTime DEMO_HISTORY_ATTEMPT_STARTED_AT = LocalDateTime.of(2024, 2, 10, 9, 0);
+    private static final LocalDateTime DEMO_HISTORY_ATTEMPT_SUBMITTED_AT = LocalDateTime.of(2024, 2, 10, 9, 40);
 
     @Bean
     public ApplicationRunner adminSeeder(BootstrapProperties bootstrapProperties,
                                          UserRepository userRepository,
                                          RoleRepository roleRepository,
                                          PermissionRepository permissionRepository,
+                                         ExamRepository examRepository,
+                                         QuestionRepository questionRepository,
+                                         ExamCallRepository examCallRepository,
+                                         ExamAttemptRepository examAttemptRepository,
                                          PasswordEncoder passwordEncoder) {
         return args -> {
             seedRolesAndPermissions(roleRepository, permissionRepository);
             seedLocalTestUsers(bootstrapProperties, userRepository, roleRepository, passwordEncoder);
+            seedStudentDemoData(bootstrapProperties,
+                    userRepository,
+                    examRepository,
+                    questionRepository,
+                    examCallRepository,
+                    examAttemptRepository);
 
             if (!bootstrapProperties.isSeedAdmin()) {
                 return;
@@ -103,6 +133,159 @@ public class BootstrapData {
         user.setRole(role);
         userRepository.save(user);
         logger.info("Seeded local test user {} ({})", username, role.getName());
+    }
+
+    private void seedStudentDemoData(BootstrapProperties bootstrapProperties,
+                                     UserRepository userRepository,
+                                     ExamRepository examRepository,
+                                     QuestionRepository questionRepository,
+                                     ExamCallRepository examCallRepository,
+                                     ExamAttemptRepository examAttemptRepository) {
+        if (!bootstrapProperties.isSeedLocalTestUsers()) {
+            return;
+        }
+
+        User professor = userRepository.findByUsername(bootstrapProperties.getProfessorUsername()).orElse(null);
+        User student = userRepository.findByUsername(bootstrapProperties.getStudentUsername()).orElse(null);
+        if (professor == null || student == null) {
+            logger.warn("Skipped demo exam seed: professor or student test user missing");
+            return;
+        }
+
+        Exam demoExam = findOrCreateDemoExam(examRepository, professor);
+        List<Question> demoQuestions = findOrCreateDemoQuestions(questionRepository, demoExam);
+
+        findOrCreateExamCall(
+                examCallRepository,
+                demoExam,
+                DEMO_OPEN_CALL_START,
+                DEMO_OPEN_CALL_END,
+                30,
+                0
+        );
+
+        ExamCall historyCall = findOrCreateExamCall(
+                examCallRepository,
+                demoExam,
+                DEMO_HISTORY_CALL_START,
+                DEMO_HISTORY_CALL_END,
+                30,
+                1
+        );
+
+        if (examAttemptRepository.findByExamCallIdAndStudentId(historyCall.getId(), student.getId()).isPresent()) {
+            return;
+        }
+
+        ExamAttempt attempt = new ExamAttempt();
+        attempt.setExamCall(historyCall);
+        attempt.setStudent(student);
+        attempt.setStartedAt(DEMO_HISTORY_ATTEMPT_STARTED_AT);
+        attempt.setSubmittedAt(DEMO_HISTORY_ATTEMPT_SUBMITTED_AT);
+        attempt.setStatus(AttemptStatus.GRADED);
+
+        BigDecimal finalScore = BigDecimal.ZERO;
+        for (int index = 0; index < demoQuestions.size(); index++) {
+            Question question = demoQuestions.get(index);
+
+            AttemptQuestion attemptQuestion = new AttemptQuestion();
+            attemptQuestion.setAttempt(attempt);
+            attemptQuestion.setQuestion(question);
+            attemptQuestion.setQuestionOrder(index + 1);
+
+            String answerText;
+            if (index == 0) {
+                answerText = "Autenticacion confirma quien sos con credenciales o token; autorizacion define que acciones permite tu rol.";
+            } else if (index == 1) {
+                answerText = "Verdadero. JWT se envia en Authorization con esquema Bearer.";
+            } else {
+                answerText = "Validar token y rol en cada endpoint, y aplicar minimo privilegio por permisos especificos.";
+            }
+            attemptQuestion.setAnswerText(answerText);
+
+            int points = question.getPoints() == null ? 0 : question.getPoints();
+            BigDecimal awardedScore = index == demoQuestions.size() - 1
+                    ? BigDecimal.valueOf(Math.max(points - 1, 0))
+                    : BigDecimal.valueOf(points);
+            attemptQuestion.setAwardedScore(awardedScore);
+            attemptQuestion.setReviewComment(index == 0
+                    ? "Definicion clara y correcta"
+                    : index == 1
+                    ? "Correcto"
+                    : "Bien encaminado, faltaron ejemplos concretos de implementacion");
+
+            finalScore = finalScore.add(awardedScore);
+            attempt.getQuestions().add(attemptQuestion);
+        }
+
+        attempt.setFinalScore(finalScore);
+        examAttemptRepository.save(attempt);
+        logger.info("Seeded demo graded attempt for student {}", student.getUsername());
+    }
+
+    private Exam findOrCreateDemoExam(ExamRepository examRepository, User professor) {
+        return examRepository.findByProfessorId(professor.getId()).stream()
+                .filter(exam -> DEMO_EXAM_TITLE.equals(exam.getTitle()))
+                .findFirst()
+                .orElseGet(() -> {
+                    Exam exam = new Exam();
+                    exam.setTitle(DEMO_EXAM_TITLE);
+                    exam.setDescription("Examen demo para flujo E2E de estudiante");
+                    exam.setDurationMinutes(60);
+                    exam.setProfessor(professor);
+                    return examRepository.save(exam);
+                });
+    }
+
+    private List<Question> findOrCreateDemoQuestions(QuestionRepository questionRepository, Exam exam) {
+        List<Question> existing = questionRepository.findByExamIdOrderByIdAsc(exam.getId());
+        if (!existing.isEmpty()) {
+            return existing;
+        }
+
+        Question first = new Question();
+        first.setExam(exam);
+        first.setStatement("Explica diferencia entre autenticacion y autorizacion");
+        first.setType(QuestionType.OPEN);
+        first.setPoints(4);
+
+        Question second = new Question();
+        second.setExam(exam);
+        second.setStatement("JWT se envia en header Authorization Bearer: verdadero o falso");
+        second.setType(QuestionType.TRUE_FALSE);
+        second.setPoints(3);
+
+        Question third = new Question();
+        third.setExam(exam);
+        third.setStatement("Menciona dos buenas practicas para proteger endpoints REST");
+        third.setType(QuestionType.OPEN);
+        third.setPoints(3);
+
+        questionRepository.saveAll(List.of(first, second, third));
+        return questionRepository.findByExamIdOrderByIdAsc(exam.getId());
+    }
+
+    private ExamCall findOrCreateExamCall(ExamCallRepository examCallRepository,
+                                          Exam exam,
+                                          LocalDateTime startDate,
+                                          LocalDateTime endDate,
+                                          Integer totalCapacity,
+                                          Integer currentEnrollment) {
+        return examCallRepository.findAll().stream()
+                .filter(call -> call.getExam() != null
+                        && exam.getId().equals(call.getExam().getId())
+                        && startDate.equals(call.getStartDate())
+                        && endDate.equals(call.getEndDate()))
+                .findFirst()
+                .orElseGet(() -> {
+                    ExamCall examCall = new ExamCall();
+                    examCall.setExam(exam);
+                    examCall.setStartDate(startDate);
+                    examCall.setEndDate(endDate);
+                    examCall.setTotalCapacity(totalCapacity);
+                    examCall.setCurrentEnrollment(currentEnrollment);
+                    return examCallRepository.save(examCall);
+                });
     }
 
     private void seedRolesAndPermissions(RoleRepository roleRepository, PermissionRepository permissionRepository) {

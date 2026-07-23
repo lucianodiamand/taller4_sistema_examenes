@@ -159,4 +159,36 @@ class ExamControllerWebMvcTest {
                 .andExpect(jsonPath("$.totalCapacity").value(30))
                 .andExpect(jsonPath("$.currentEnrollment").value(0));
     }
+
+    // totalCapacity es opcional: null significa cupo ilimitado
+    // (ver StudentExamService.hasCapacity, que trata null como sin limite).
+    @Test
+    @WithMockUser(authorities = "exams.create")
+    void postExamCallAllowsNullTotalCapacityForUnlimitedSeats() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        Exam exam = new Exam();
+        ExamCall savedCall = new ExamCall();
+        savedCall.setExam(exam);
+        savedCall.setStartDate(LocalDateTime.of(2026, 8, 1, 9, 0));
+        savedCall.setEndDate(LocalDateTime.of(2026, 8, 1, 11, 0));
+        savedCall.setTotalCapacity(null);
+        savedCall.setCurrentEnrollment(0);
+
+        when(examService.createCall(eq(1L), eq(77L), eq(savedCall.getStartDate()), eq(savedCall.getEndDate()), eq(null)))
+                .thenReturn(savedCall);
+
+        String payload = """
+                {
+                  "startDate": "2026-08-01T09:00:00",
+                  "endDate": "2026-08-01T11:00:00"
+                }
+                """;
+
+        mockMvc.perform(post("/api/exams/1/calls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalCapacity").isEmpty());
+    }
 }

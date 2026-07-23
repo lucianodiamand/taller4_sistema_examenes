@@ -147,7 +147,7 @@ public class ExamController {
     public record CreateExamCallRequest(
             @NotNull(message = "La fecha de inicio es obligatoria") LocalDateTime startDate,
             @NotNull(message = "La fecha de fin es obligatoria") LocalDateTime endDate,
-            @NotNull(message = "El cupo es obligatorio")
+            // Null = cupo ilimitado (ver StudentExamService.hasCapacity)
             @Min(value = 1, message = "El cupo debe ser al menos 1")
             Integer totalCapacity
     ) {

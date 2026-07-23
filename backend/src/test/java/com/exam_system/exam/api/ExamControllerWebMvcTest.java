@@ -4,6 +4,9 @@ import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.auth.security.JwtAuthenticationFilter;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.ExamCall;
+import com.exam_system.exam.domain.Question;
+import com.exam_system.exam.domain.QuestionType;
 import com.exam_system.user.domain.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +18,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -94,13 +100,23 @@ class ExamControllerWebMvcTest {
         savedExam.setDurationMinutes(90);
         savedExam.setProfessor(professor);
 
-        when(examService.create("Algebra", "Parcial 1", 90, 77L)).thenReturn(savedExam);
+        Question savedQuestion = new Question();
+        savedQuestion.setId(10L);
+        savedQuestion.setStatement("2+2?");
+        savedQuestion.setType(QuestionType.OPEN);
+        savedQuestion.setPoints(10);
+
+        when(examService.create(eq("Algebra"), eq("Parcial 1"), eq(90), eq(77L), anyList()))
+                .thenReturn(new ExamService.CreationResult(savedExam, List.of(savedQuestion)));
 
         String payload = """
                 {
                   "title": "Algebra",
                   "description": "Parcial 1",
-                  "durationMinutes": 90
+                  "durationMinutes": 90,
+                  "questions": [
+                    { "statement": "2+2?", "type": "OPEN", "points": 10 }
+                  ]
                 }
                 """;
 
@@ -108,6 +124,71 @@ class ExamControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.professorId").value(77));
+                .andExpect(jsonPath("$.professorId").value(77))
+                .andExpect(jsonPath("$.questions[0].statement").value("2+2?"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "exams.create")
+    void postExamCallCreatesCallForOwnExam() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        Exam exam = new Exam();
+        ExamCall savedCall = new ExamCall();
+        savedCall.setExam(exam);
+        savedCall.setStartDate(LocalDateTime.of(2026, 8, 1, 9, 0));
+        savedCall.setEndDate(LocalDateTime.of(2026, 8, 1, 11, 0));
+        savedCall.setTotalCapacity(30);
+        savedCall.setCurrentEnrollment(0);
+
+        when(examService.createCall(eq(1L), eq(77L), eq(savedCall.getStartDate()), eq(savedCall.getEndDate()), eq(30)))
+                .thenReturn(savedCall);
+
+        String payload = """
+                {
+                  "startDate": "2026-08-01T09:00:00",
+                  "endDate": "2026-08-01T11:00:00",
+                  "totalCapacity": 30
+                }
+                """;
+
+        mockMvc.perform(post("/api/exams/1/calls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalCapacity").value(30))
+                .andExpect(jsonPath("$.currentEnrollment").value(0));
+    }
+
+    // totalCapacity es opcional: null significa cupo ilimitado
+    // (ver StudentExamService.hasCapacity, que trata null como sin limite).
+    @Test
+    @WithMockUser(authorities = "exams.create")
+    void postExamCallAllowsNullTotalCapacityForUnlimitedSeats() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        Exam exam = new Exam();
+        ExamCall savedCall = new ExamCall();
+        savedCall.setExam(exam);
+        savedCall.setStartDate(LocalDateTime.of(2026, 8, 1, 9, 0));
+        savedCall.setEndDate(LocalDateTime.of(2026, 8, 1, 11, 0));
+        savedCall.setTotalCapacity(null);
+        savedCall.setCurrentEnrollment(0);
+
+        when(examService.createCall(eq(1L), eq(77L), eq(savedCall.getStartDate()), eq(savedCall.getEndDate()), eq(null)))
+                .thenReturn(savedCall);
+
+        String payload = """
+                {
+                  "startDate": "2026-08-01T09:00:00",
+                  "endDate": "2026-08-01T11:00:00"
+                }
+                """;
+
+        mockMvc.perform(post("/api/exams/1/calls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalCapacity").isEmpty());
     }
 }

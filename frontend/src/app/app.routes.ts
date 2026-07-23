@@ -52,7 +52,22 @@ export const routes: Routes = [
           roles: [UserRole.PROFESSOR, UserRole.ADMIN],
           title: 'Inicio profesor',
         },
-        loadComponent: () => import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+        children: [
+          {
+            path: '',
+            pathMatch: 'full',
+            loadComponent: () =>
+              import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+          },
+          {
+            path: APP_ROUTE_PATHS.professorGrading,
+            canActivate: [roleGuard],
+            // GradingController solo autoriza hasRole('PROFESSOR'), ADMIN queda afuera
+            // a diferencia del resto de las rutas de /professor.
+            data: { roles: [UserRole.PROFESSOR], title: 'Corregir exámenes' },
+            loadComponent: () => import('./professor/grading.component').then((m) => m.GradingComponent),
+          },
+        ],
       },
       {
         path: APP_ROUTE_PATHS.student,

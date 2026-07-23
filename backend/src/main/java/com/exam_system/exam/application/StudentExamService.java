@@ -144,7 +144,6 @@ public class StudentExamService {
         applyAnswers(attempt, answers);
 
         ExamAttempt savedAttempt = examAttemptRepository.saveAndFlush(attempt);
-        logger.debug("Saved answers for attempt {}", attemptId);
         return toAttemptDetail(savedAttempt);
     }
 

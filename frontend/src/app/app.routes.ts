@@ -49,15 +49,25 @@ export const routes: Routes = [
         path: APP_ROUTE_PATHS.professor,
         canActivate: [roleGuard],
         data: {
-          roles: [UserRole.PROFESSOR, UserRole.ADMIN],
+          roles: [UserRole.PROFESSOR],
           title: 'Inicio profesor',
         },
         children: [
           {
             path: '',
             pathMatch: 'full',
+            children: [
+          {
+            path: '',
+            pathMatch: 'full',
             loadComponent: () =>
               import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
+          },
+          {
+            path: APP_ROUTE_PATHS.professorExams,
+            loadComponent: () => import('./professor/professor-exams.component').then((m) => m.ProfessorExamsComponent),
+          },
+        ],
           },
           {
             path: APP_ROUTE_PATHS.professorGrading,

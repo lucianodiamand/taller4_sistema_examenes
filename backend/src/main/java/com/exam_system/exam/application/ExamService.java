@@ -42,6 +42,14 @@ public class ExamService {
         return examRepository.findByProfessorId(professorId);
     }
 
+    @Transactional(readOnly = true)
+    public List<ExamCall> findCallsForExam(Long examId, Long professorId) {
+        examRepository.findByIdAndProfessorId(examId, professorId)
+                .orElseThrow(() -> new EntityNotFoundException("El examen no existe o no te pertenece"));
+
+        return examCallRepository.findByExamIdOrderByStartDateDesc(examId);
+    }
+
     @Transactional
     public CreationResult create(String title, String description, Integer durationMinutes, Long professorId,
                                   List<QuestionInput> questions) {

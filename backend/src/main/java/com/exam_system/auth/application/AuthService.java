@@ -10,6 +10,8 @@ import com.exam_system.user.repository.RoleRepository;
 import com.exam_system.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -61,6 +65,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(studentRole);
         userRepository.save(user);
+        logger.info("Registered student user={}", username);
     }
 
     @Transactional
@@ -72,6 +77,7 @@ public class AuthService {
             throw new BadCredentialsException("Invalid credentials");
         }
 
+        logger.info("Login success userId={} role={}", user.getId(), user.getRole().getName());
         return issueTokenPair(user, ip, userAgent);
     }
 
@@ -99,6 +105,7 @@ public class AuthService {
         stored.setReplacedByToken(replacement);
         authTokenRepository.save(stored);
 
+        logger.info("Refresh success userId={}", user.getId());
         return newPair;
     }
 
@@ -109,6 +116,7 @@ public class AuthService {
         authTokenRepository.findByAccessJti(jti).ifPresent(token -> {
             token.setRevokedAt(Instant.now());
             authTokenRepository.save(token);
+            logger.info("Logout success userId={} sessionId={}", token.getUser().getId(), token.getSessionId());
         });
     }
 
@@ -121,6 +129,7 @@ public class AuthService {
             token.setRevokedAt(now);
         }
         authTokenRepository.saveAll(activeTokens);
+        logger.info("Logout-all success userId={} sessionsRevoked={}", userId, activeTokens.size());
     }
 
     private TokenPair issueTokenPair(User user, String ip, String userAgent) {

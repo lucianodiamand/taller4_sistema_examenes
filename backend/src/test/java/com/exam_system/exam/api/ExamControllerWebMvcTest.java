@@ -47,7 +47,7 @@ class ExamControllerWebMvcTest {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
-    @WithMockUser(authorities = "exams.create")
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
     void getExamsReturnsOnlyAuthenticatedProfessorsExams() throws Exception {
         when(currentUser.id()).thenReturn(77L);
 
@@ -69,7 +69,29 @@ class ExamControllerWebMvcTest {
     }
 
     @Test
-    @WithMockUser(authorities = "exams.create")
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
+    void getExamCallsReturnsCallsForOwnedExam() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        Exam exam = new Exam();
+
+        ExamCall call = new ExamCall();
+        call.setExam(exam);
+        call.setStartDate(LocalDateTime.of(2026, 8, 15, 9, 0));
+        call.setEndDate(LocalDateTime.of(2026, 8, 15, 11, 0));
+        call.setTotalCapacity(40);
+        call.setCurrentEnrollment(12);
+
+        when(examService.findCallsForExam(1L, 77L)).thenReturn(List.of(call));
+
+        mockMvc.perform(get("/api/exams/1/calls"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].totalCapacity").value(40))
+                .andExpect(jsonPath("$[0].currentEnrollment").value(12));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
     void postExamValidationReturnsBadRequestShape() throws Exception {
         String payload = """
                 {
@@ -87,7 +109,7 @@ class ExamControllerWebMvcTest {
     }
 
     @Test
-    @WithMockUser(authorities = "exams.create")
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
     void postExamUsesProfessorIdFromJwtNotRequestBody() throws Exception {
         when(currentUser.id()).thenReturn(77L);
 
@@ -129,7 +151,7 @@ class ExamControllerWebMvcTest {
     }
 
     @Test
-    @WithMockUser(authorities = "exams.create")
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
     void postExamCallCreatesCallForOwnExam() throws Exception {
         when(currentUser.id()).thenReturn(77L);
 
@@ -163,7 +185,7 @@ class ExamControllerWebMvcTest {
     // totalCapacity es opcional: null significa cupo ilimitado
     // (ver StudentExamService.hasCapacity, que trata null como sin limite).
     @Test
-    @WithMockUser(authorities = "exams.create")
+    @WithMockUser(authorities = {"ROLE_PROFESSOR", "exams.create"})
     void postExamCallAllowsNullTotalCapacityForUnlimitedSeats() throws Exception {
         when(currentUser.id()).thenReturn(77L);
 
@@ -191,4 +213,5 @@ class ExamControllerWebMvcTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.totalCapacity").isEmpty());
     }
+
 }

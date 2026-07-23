@@ -2,6 +2,7 @@ package com.exam_system.exam.api;
 
 import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.exam.application.ExamService;
+import com.exam_system.exam.domain.ExamCall;
 import com.exam_system.exam.domain.Question;
 import com.exam_system.exam.domain.QuestionType;
 import jakarta.validation.Valid;
@@ -13,12 +14,14 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -69,6 +72,21 @@ public class ExamController {
                 result.exam().getProfessor().getId(),
                 result.questions().stream().map(QuestionResponse::from).toList()
         );
+    }
+
+    @PostMapping("/{examId}/calls")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('exams.create')")
+    public ExamCallResponse createCall(@PathVariable Long examId, @Valid @RequestBody CreateExamCallRequest request) {
+        ExamCall call = examService.createCall(
+                examId,
+                currentUser.id(),
+                request.startDate(),
+                request.endDate(),
+                request.totalCapacity()
+        );
+
+        return ExamCallResponse.from(call);
     }
 
     public record CreateExamRequest(
@@ -124,5 +142,34 @@ public class ExamController {
             Long professorId,
             List<QuestionResponse> questions
     ) {
+    }
+
+    public record CreateExamCallRequest(
+            @NotNull(message = "La fecha de inicio es obligatoria") LocalDateTime startDate,
+            @NotNull(message = "La fecha de fin es obligatoria") LocalDateTime endDate,
+            @NotNull(message = "El cupo es obligatorio")
+            @Min(value = 1, message = "El cupo debe ser al menos 1")
+            Integer totalCapacity
+    ) {
+    }
+
+    public record ExamCallResponse(
+            Long id,
+            Long examId,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            Integer totalCapacity,
+            Integer currentEnrollment
+    ) {
+        static ExamCallResponse from(ExamCall call) {
+            return new ExamCallResponse(
+                    call.getId(),
+                    call.getExam().getId(),
+                    call.getStartDate(),
+                    call.getEndDate(),
+                    call.getTotalCapacity(),
+                    call.getCurrentEnrollment()
+            );
+        }
     }
 }

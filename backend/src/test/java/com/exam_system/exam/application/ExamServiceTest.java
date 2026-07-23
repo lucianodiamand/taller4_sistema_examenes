@@ -1,8 +1,10 @@
 package com.exam_system.exam.application;
 
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.ExamCall;
 import com.exam_system.exam.domain.Question;
 import com.exam_system.exam.domain.QuestionType;
+import com.exam_system.exam.repository.ExamCallRepository;
 import com.exam_system.exam.repository.ExamRepository;
 import com.exam_system.exam.repository.QuestionRepository;
 import com.exam_system.user.domain.User;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +36,9 @@ class ExamServiceTest {
 
     @Mock
     private QuestionRepository questionRepository;
+
+    @Mock
+    private ExamCallRepository examCallRepository;
 
     @InjectMocks
     private ExamService examService;
@@ -93,5 +99,62 @@ class ExamServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("Math", result.get(0).getTitle());
+    }
+
+    // Caso feliz de convocatoria: el examen 10 existe y pertenece al
+    // profesor 5. Verifica que la convocatoria quede asociada a ese examen,
+    // con las fechas y el cupo pedidos, y arranque con 0 inscriptos.
+    @Test
+    void createCallPersistsForOwnedExam() {
+        User professor = new User();
+        professor.setId(5L);
+        Exam exam = new Exam();
+        exam.setProfessor(professor);
+
+        when(examRepository.findByIdAndProfessorId(10L, 5L)).thenReturn(Optional.of(exam));
+        when(examCallRepository.save(any(ExamCall.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LocalDateTime start = LocalDateTime.of(2026, 8, 1, 9, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 8, 1, 11, 0);
+
+        ExamCall result = examService.createCall(10L, 5L, start, end, 30);
+
+        assertEquals(exam, result.getExam());
+        assertEquals(start, result.getStartDate());
+        assertEquals(end, result.getEndDate());
+        assertEquals(30, result.getTotalCapacity());
+        assertEquals(0, result.getCurrentEnrollment());
+    }
+
+    // Caso de ownership: el examen 10 no es del profesor 5 (o no existe),
+    // asi que el repositorio scopeado devuelve vacio. Verifica que no se
+    // pueda crear una convocatoria para un examen ajeno.
+    @Test
+    void createCallFailsWhenExamNotOwnedByProfessor() {
+        when(examRepository.findByIdAndProfessorId(10L, 5L)).thenReturn(Optional.empty());
+
+        LocalDateTime start = LocalDateTime.of(2026, 8, 1, 9, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 8, 1, 11, 0);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> examService.createCall(10L, 5L, start, end, 30));
+    }
+
+    // Caso de validacion: la fecha de fin no es posterior a la de inicio.
+    // Verifica que el service rechace la convocatoria antes de guardarla.
+    @Test
+    void createCallFailsWhenEndDateNotAfterStartDate() {
+        User professor = new User();
+        professor.setId(5L);
+        Exam exam = new Exam();
+        exam.setProfessor(professor);
+
+        when(examRepository.findByIdAndProfessorId(10L, 5L)).thenReturn(Optional.of(exam));
+
+        LocalDateTime start = LocalDateTime.of(2026, 8, 1, 11, 0);
+        LocalDateTime end = LocalDateTime.of(2026, 8, 1, 9, 0);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> examService.createCall(10L, 5L, start, end, 30));
     }
 }

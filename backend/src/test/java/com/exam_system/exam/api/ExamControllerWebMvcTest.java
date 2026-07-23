@@ -4,6 +4,7 @@ import com.exam_system.auth.security.CurrentUser;
 import com.exam_system.auth.security.JwtAuthenticationFilter;
 import com.exam_system.exam.application.ExamService;
 import com.exam_system.exam.domain.Exam;
+import com.exam_system.exam.domain.ExamCall;
 import com.exam_system.exam.domain.Question;
 import com.exam_system.exam.domain.QuestionType;
 import com.exam_system.user.domain.User;
@@ -17,6 +18,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyList;
@@ -124,5 +126,37 @@ class ExamControllerWebMvcTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.professorId").value(77))
                 .andExpect(jsonPath("$.questions[0].statement").value("2+2?"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "exams.create")
+    void postExamCallCreatesCallForOwnExam() throws Exception {
+        when(currentUser.id()).thenReturn(77L);
+
+        Exam exam = new Exam();
+        ExamCall savedCall = new ExamCall();
+        savedCall.setExam(exam);
+        savedCall.setStartDate(LocalDateTime.of(2026, 8, 1, 9, 0));
+        savedCall.setEndDate(LocalDateTime.of(2026, 8, 1, 11, 0));
+        savedCall.setTotalCapacity(30);
+        savedCall.setCurrentEnrollment(0);
+
+        when(examService.createCall(eq(1L), eq(77L), eq(savedCall.getStartDate()), eq(savedCall.getEndDate()), eq(30)))
+                .thenReturn(savedCall);
+
+        String payload = """
+                {
+                  "startDate": "2026-08-01T09:00:00",
+                  "endDate": "2026-08-01T11:00:00",
+                  "totalCapacity": 30
+                }
+                """;
+
+        mockMvc.perform(post("/api/exams/1/calls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.totalCapacity").value(30))
+                .andExpect(jsonPath("$.currentEnrollment").value(0));
     }
 }

@@ -1,7 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnChanges, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatTabsModule } from '@angular/material/tabs';
+import { Router, RouterLink } from '@angular/router';
+import { finalize, forkJoin, take } from 'rxjs';
+import { APP_ROUTES } from '../auth/contracts/auth.contracts';
+import { AuthService } from '../auth/services/auth.service';
 import {
   AttemptDetail,
   AttemptStatus,
@@ -14,43 +24,77 @@ type Section = 'available' | 'history';
 
 @Component({
   selector: 'app-student-exams',
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTabsModule,
+    RouterLink
+  ],
   templateUrl: './student-exams.component.html',
   styleUrl: './student-exams.component.scss'
 })
 export class StudentExamsComponent implements OnInit {
-  availableExams: AvailableExam[] = [];
-  attempts: AttemptSummary[] = [];
-  activeAttempt: AttemptDetail | null = null;
-  section: Section = 'available';
-  loading = false;
-  saving = false;
-  message = '';
-  error = '';
+  readonly availableExams = signal<AvailableExam[]>([]);
+  readonly attempts = signal<AttemptSummary[]>([]);
+  readonly activeAttempt = signal<AttemptDetail | null>(null);
+  readonly section = signal<Section>('available');
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly message = signal('');
+  readonly error = signal('');
+  dialogRef: MatDialogRef<unknown> | null = null;
+  readonly routes = APP_ROUTES;
 
-  constructor(private readonly studentExamsService: StudentExamsService) {}
+  @ViewChild('attemptDialog') private attemptDialog?: TemplateRef<unknown>;
+
+  constructor(
+    private readonly studentExamsService: StudentExamsService,
+    private readonly dialog: MatDialog,
+    private readonly authService: AuthService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
-  loadData(): void {
-    this.loading = true;
-    this.error = '';
+  get selectedTabIndex(): number {
+    return this.section() === 'available' ? 0 : 1;
+  }
 
-    this.studentExamsService.getAvailableExams().subscribe({
-      next: (exams) => {
-        this.availableExams = exams;
-        this.loadAttempts();
-      },
-      error: (error) => this.finishWithError(error)
-    });
+  loadData(): void {
+    this.loading.set(true);
+    this.error.set('');
+
+    forkJoin({
+      exams: this.studentExamsService.getAvailableExams(),
+      attempts: this.studentExamsService.getMyAttempts()
+    })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: ({ exams, attempts }) => {
+          this.availableExams.set(exams);
+          this.attempts.set(attempts);
+        },
+        error: (error) => {
+          this.error.set(this.getErrorMessage(error));
+        }
+      });
   }
 
   changeSection(section: Section): void {
-    this.section = section;
-    this.message = '';
-    this.error = '';
+    this.section.set(section);
+    this.message.set('');
+    this.error.set('');
+  }
+
+  changeTab(index: number): void {
+    this.changeSection(index === 0 ? 'available' : 'history');
   }
 
   startOrContinue(exam: AvailableExam): void {
@@ -59,63 +103,78 @@ export class StudentExamsComponent implements OnInit {
       return;
     }
 
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
     this.studentExamsService.startAttempt(exam.examCallId).subscribe({
       next: (attempt) => {
-        this.activeAttempt = attempt;
-        this.loading = false;
+        this.activeAttempt.set(attempt);
+        this.loading.set(false);
+        this.openAttemptDialog();
       },
       error: (error) => this.finishWithError(error)
     });
   }
 
   openAttempt(attemptId: number): void {
-    this.loading = true;
-    this.error = '';
+    this.loading.set(true);
+    this.error.set('');
     this.studentExamsService.getAttempt(attemptId).subscribe({
       next: (attempt) => {
-        this.activeAttempt = attempt;
-        this.loading = false;
+        this.activeAttempt.set(attempt);
+        this.loading.set(false);
+        this.openAttemptDialog();
       },
       error: (error) => this.finishWithError(error)
     });
   }
 
   closeAttempt(): void {
-    this.activeAttempt = null;
-    this.message = '';
-    this.error = '';
+    if (this.dialogRef) {
+      this.dialogRef.close();
+      return;
+    }
+    this.resetAttemptView();
+  }
+
+  logout(): void {
+    this.authService
+      .logout()
+      .pipe(take(1))
+      .subscribe(() => {
+        void this.router.navigateByUrl(APP_ROUTES.login);
+      });
   }
 
   saveProgress(): void {
-    if (!this.activeAttempt || !this.isEditable(this.activeAttempt.status)) {
+    const activeAttempt = this.activeAttempt();
+    if (!activeAttempt || !this.isEditable(activeAttempt.status)) {
       return;
     }
 
-    this.saving = true;
-    this.message = '';
-    this.error = '';
-    this.studentExamsService.saveAnswers(this.activeAttempt).subscribe({
+    this.saving.set(true);
+    this.message.set('');
+    this.error.set('');
+    this.studentExamsService.saveAnswers(activeAttempt).subscribe({
       next: (attempt) => {
-        this.activeAttempt = attempt;
-        this.saving = false;
-        this.message = 'El progreso se guardó correctamente.';
+        this.activeAttempt.set(attempt);
+        this.saving.set(false);
+        this.message.set('El progreso se guardó correctamente.');
       },
       error: (error) => this.finishSavingWithError(error)
     });
   }
 
   submitAttempt(): void {
-    if (!this.activeAttempt || !this.isEditable(this.activeAttempt.status)) {
+    const activeAttempt = this.activeAttempt();
+    if (!activeAttempt || !this.isEditable(activeAttempt.status)) {
       return;
     }
 
-    const hasMissingAnswers = this.activeAttempt.questions.some(
+    const hasMissingAnswers = activeAttempt.questions.some(
       (question) => !question.answerText?.trim()
     );
     if (hasMissingAnswers) {
-      this.error = 'Tenés que responder todas las preguntas antes de enviar el examen.';
+      this.error.set('Tenés que responder todas las preguntas antes de enviar el examen.');
       return;
     }
 
@@ -126,14 +185,14 @@ export class StudentExamsComponent implements OnInit {
       return;
     }
 
-    this.saving = true;
-    this.message = '';
-    this.error = '';
-    this.studentExamsService.submitAttempt(this.activeAttempt).subscribe({
+    this.saving.set(true);
+    this.message.set('');
+    this.error.set('');
+    this.studentExamsService.submitAttempt(activeAttempt).subscribe({
       next: (attempt) => {
-        this.activeAttempt = attempt;
-        this.saving = false;
-        this.message = 'El examen fue enviado y quedó pendiente de corrección.';
+        this.activeAttempt.set(attempt);
+        this.saving.set(false);
+        this.message.set('El examen fue enviado y quedó pendiente de corrección.');
         this.refreshLists();
       },
       error: (error) => this.finishSavingWithError(error)
@@ -162,33 +221,23 @@ export class StudentExamsComponent implements OnInit {
     return labels[type] ?? type;
   }
 
-  private loadAttempts(): void {
-    this.studentExamsService.getMyAttempts().subscribe({
-      next: (attempts) => {
-        this.attempts = attempts;
-        this.loading = false;
-      },
-      error: (error) => this.finishWithError(error)
-    });
-  }
-
   private refreshLists(): void {
     this.studentExamsService.getAvailableExams().subscribe({
-      next: (exams) => (this.availableExams = exams)
+      next: (exams) => this.availableExams.set(exams)
     });
     this.studentExamsService.getMyAttempts().subscribe({
-      next: (attempts) => (this.attempts = attempts)
+      next: (attempts) => this.attempts.set(attempts)
     });
   }
 
   private finishWithError(error: unknown): void {
-    this.loading = false;
-    this.error = this.getErrorMessage(error);
+    this.loading.set(false);
+    this.error.set(this.getErrorMessage(error));
   }
 
   private finishSavingWithError(error: unknown): void {
-    this.saving = false;
-    this.error = this.getErrorMessage(error);
+    this.saving.set(false);
+    this.error.set(this.getErrorMessage(error));
   }
 
   private getErrorMessage(error: unknown): string {
@@ -201,5 +250,30 @@ export class StudentExamsComponent implements OnInit {
       }
     }
     return 'No se pudo completar la operación. Intentá nuevamente.';
+  }
+
+  private openAttemptDialog(): void {
+    if (!this.activeAttempt() || !this.attemptDialog || this.dialogRef) {
+      return;
+    }
+
+    this.dialogRef = this.dialog.open(this.attemptDialog, {
+      width: 'min(900px, calc(100vw - 32px))',
+      maxWidth: '900px'
+    });
+
+    this.dialogRef
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe(() => {
+        this.dialogRef = null;
+        this.resetAttemptView();
+      });
+  }
+
+  private resetAttemptView(): void {
+    this.activeAttempt.set(null);
+    this.message.set('');
+    this.error.set('');
   }
 }

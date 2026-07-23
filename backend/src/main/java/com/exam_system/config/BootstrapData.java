@@ -1,5 +1,19 @@
 package com.exam_system.config;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.exam_system.exam.domain.AttemptQuestion;
 import com.exam_system.exam.domain.AttemptStatus;
 import com.exam_system.exam.domain.Exam;
@@ -17,19 +31,6 @@ import com.exam_system.user.domain.User;
 import com.exam_system.user.repository.PermissionRepository;
 import com.exam_system.user.repository.RoleRepository;
 import com.exam_system.user.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Configuration
 public class BootstrapData {
@@ -194,18 +195,22 @@ public class BootstrapData {
             attemptQuestion.setQuestionOrder(index + 1);
 
             String answerText;
-            if (index == 0) {
-                answerText = "Autenticacion confirma quien sos con credenciales o token; autorizacion define que acciones permite tu rol.";
-            } else if (index == 1) {
-                answerText = "Verdadero. JWT se envia en Authorization con esquema Bearer.";
-            } else {
-                answerText = "Validar token y rol en cada endpoint, y aplicar minimo privilegio por permisos especificos.";
+            switch (index) {
+                case 0:
+                    answerText = "Autenticacion confirma quien sos con credenciales o token; autorizacion define que acciones permite tu rol.";
+                    break;
+                case 1:
+                    answerText = "Verdadero. JWT se envia en Authorization con esquema Bearer.";
+                    break;
+                default:
+                    answerText = "Validar token y rol en cada endpoint, y aplicar minimo privilegio por permisos especificos.";
+                    break;
             }
             attemptQuestion.setAnswerText(answerText);
 
-            int points = question.getPoints() == null ? 0 : question.getPoints();
+            Long points = question.getPoints() == null ? 0L : Long.valueOf(question.getPoints());
             BigDecimal awardedScore = index == demoQuestions.size() - 1
-                    ? BigDecimal.valueOf(Math.max(points - 1, 0))
+                    ? BigDecimal.valueOf(Math.max(points - 1L, 0L))
                     : BigDecimal.valueOf(points);
             attemptQuestion.setAwardedScore(awardedScore);
             attemptQuestion.setReviewComment(index == 0

@@ -37,7 +37,7 @@ public class ExamController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('exams.create')")
+    @PreAuthorize("hasRole('PROFESSOR') and hasAuthority('exams.create')")
     public List<ExamResponse> findMine() {
         return examService.findAllForProfessor(currentUser.id()).stream()
                 .map(exam -> new ExamResponse(
@@ -50,9 +50,17 @@ public class ExamController {
                 .toList();
     }
 
+    @GetMapping("/{examId}/calls")
+    @PreAuthorize("hasRole('PROFESSOR') and hasAuthority('exams.create')")
+    public List<ExamCallResponse> findCalls(@PathVariable Long examId) {
+        return examService.findCallsForExam(examId, currentUser.id()).stream()
+                .map(ExamCallResponse::from)
+                .toList();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('exams.create')")
+    @PreAuthorize("hasRole('PROFESSOR') and hasAuthority('exams.create')")
     public ExamCreatedResponse create(@Valid @RequestBody CreateExamRequest request) {
         ExamService.CreationResult result = examService.create(
                 request.title(),
@@ -76,7 +84,7 @@ public class ExamController {
 
     @PostMapping("/{examId}/calls")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('exams.create')")
+    @PreAuthorize("hasRole('PROFESSOR') and hasAuthority('exams.create')")
     public ExamCallResponse createCall(@PathVariable Long examId, @Valid @RequestBody CreateExamCallRequest request) {
         ExamCall call = examService.createCall(
                 examId,

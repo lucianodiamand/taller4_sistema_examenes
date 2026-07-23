@@ -8,6 +8,7 @@ export const APP_ROUTE_PATHS = {
   app: 'app',
   profile: 'perfil',
   professor: 'professor',
+  professorExams: 'exams',
   student: 'student',
   admin: 'admin',
   adminUsers: 'usuarios',
@@ -21,6 +22,7 @@ export const APP_ROUTES = {
   app: `/${APP_ROUTE_PATHS.app}`,
   profile: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.profile}`,
   professor: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.professor}`,
+  professorExams: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.professor}/${APP_ROUTE_PATHS.professorExams}`,
   student: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.student}`,
   admin: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.admin}`,
   adminUsers: `/${APP_ROUTE_PATHS.app}/${APP_ROUTE_PATHS.admin}/${APP_ROUTE_PATHS.adminUsers}`,
@@ -182,7 +184,7 @@ export interface RouteRoleConfig {
 }
 
 export const ROLE_ROUTE_ACCESS: readonly RouteRoleConfig[] = [
-  { pathPrefix: APP_ROUTES.professor, allowedRoles: [UserRole.PROFESSOR, UserRole.ADMIN] },
+  { pathPrefix: APP_ROUTES.professor, allowedRoles: [UserRole.PROFESSOR] },
   { pathPrefix: APP_ROUTES.student, allowedRoles: [UserRole.STUDENT, UserRole.ADMIN] },
   { pathPrefix: APP_ROUTES.admin, allowedRoles: [UserRole.ADMIN] },
 ];

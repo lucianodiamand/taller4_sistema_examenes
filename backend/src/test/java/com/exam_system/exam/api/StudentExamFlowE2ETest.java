@@ -1,14 +1,5 @@
 package com.exam_system.exam.api;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,7 +8,17 @@ import java.net.http.HttpResponse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -92,8 +93,9 @@ class StudentExamFlowE2ETest {
                         .build()
         );
         assertEquals(200, submitResponse.statusCode());
-        JsonNode submitted = objectMapper.readTree(submitResponse.body());
-        assertEquals("SUBMITTED", submitted.path("status").asText());
+        AttemptStatusView submitted = objectMapper.readValue(submitResponse.body(), AttemptStatusView.class);
+        assertNotNull(submitted.status());
+        assertEquals("SUBMITTED", submitted.status());
 
         HttpResponse<String> historyAfterResponse = send(authedRequest(accessToken, "/api/student/attempts").GET().build());
         assertEquals(200, historyAfterResponse.statusCode());
@@ -120,7 +122,9 @@ class StudentExamFlowE2ETest {
         HttpResponse<String> response = send(request);
         assertEquals(200, response.statusCode());
 
-        String token = objectMapper.readTree(response.body()).path("accessToken").asText();
+        LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
+        assertNotNull(loginResponse.accessToken());
+        String token = loginResponse.accessToken();
         assertFalse(token.isBlank());
         return token;
     }
@@ -166,7 +170,8 @@ class StudentExamFlowE2ETest {
 
     private boolean hasStatus(JsonNode attempts, String status) {
         for (JsonNode attempt : attempts) {
-            if (status.equals(attempt.path("status").asText())) {
+            AttemptStatusView attemptView = objectMapper.convertValue(attempt, AttemptStatusView.class);
+            if (status.equals(attemptView.status())) {
                 return true;
             }
         }
@@ -175,10 +180,17 @@ class StudentExamFlowE2ETest {
 
     private boolean hasAttemptWithStatus(JsonNode attempts, long attemptId, String status) {
         for (JsonNode attempt : attempts) {
-            if (attempt.path("attemptId").asLong() == attemptId && status.equals(attempt.path("status").asText())) {
+            AttemptStatusView attemptView = objectMapper.convertValue(attempt, AttemptStatusView.class);
+            if (attemptView.attemptId() == attemptId && status.equals(attemptView.status())) {
                 return true;
             }
         }
         return false;
+    }
+
+    private record LoginResponse(String accessToken) {
+    }
+
+    private record AttemptStatusView(Long attemptId, String status) {
     }
 }

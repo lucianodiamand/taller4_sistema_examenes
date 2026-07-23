@@ -56,22 +56,17 @@ export const routes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            children: [
-          {
-            path: '',
-            pathMatch: 'full',
             loadComponent: () =>
               import('./auth/pages/role-home/role-home.component').then((m) => m.RoleHomeComponent),
           },
           {
             path: APP_ROUTE_PATHS.professorExams,
-            loadComponent: () => import('./professor/professor-exams.component').then((m) => m.ProfessorExamsComponent),
-          },
-        ],
+            loadComponent: () =>
+              import('./professor/professor-exams.component').then((m) => m.ProfessorExamsComponent),
           },
           {
             path: APP_ROUTE_PATHS.professorGrading,
-            canActivate: [roleGuard],
+           
             // GradingController solo autoriza hasRole('PROFESSOR'), ADMIN queda afuera
             // a diferencia del resto de las rutas de /professor.
             data: { roles: [UserRole.PROFESSOR], title: 'Corregir exámenes' },

@@ -51,6 +51,7 @@ export class GradingComponent implements OnInit {
   private dialogRef: MatDialogRef<unknown> | null = null;
 
   @ViewChild('correctionDialog') private correctionDialog?: TemplateRef<unknown>;
+  @ViewChild('confirmCloseDialog') private confirmCloseDialog?: TemplateRef<unknown>;
 
   ngOnInit(): void {
     this.loadAttempts();
@@ -126,18 +127,25 @@ export class GradingComponent implements OnInit {
 
   protected closeGrading(): void {
     const attempt = this.activeAttempt();
-    if (!attempt || !this.allQuestionsGraded()) {
+    if (!attempt || !this.allQuestionsGraded() || !this.confirmCloseDialog) {
       return;
     }
 
-    const confirmed = window.confirm('¿Cerrar la corrección? Después no vas a poder modificar las notas.');
-    if (!confirmed) {
-      return;
-    }
+    this.dialog
+      .open(this.confirmCloseDialog, { width: '420px' })
+      .afterClosed()
+      .pipe(take(1))
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.performCloseGrading(attempt.attemptId);
+        }
+      });
+  }
 
+  private performCloseGrading(attemptId: number): void {
     this.closing.set(true);
     this.gradingService
-      .closeGrading(attempt.attemptId)
+      .closeGrading(attemptId)
       .pipe(finalize(() => this.closing.set(false)))
       .subscribe({
         next: () => {

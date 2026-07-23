@@ -115,3 +115,14 @@
     </mat-dialog-actions>
   }
 </ng-template>
+
+<ng-template #confirmCloseDialog>
+  <h2 mat-dialog-title>Cerrar corrección</h2>
+  <mat-dialog-content>
+    <p>¿Cerrar la corrección? Después no vas a poder modificar las notas.</p>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">Cancelar</button>
+    <button mat-flat-button color="primary" [mat-dialog-close]="true">Cerrar corrección</button>
+  </mat-dialog-actions>
+</ng-template>

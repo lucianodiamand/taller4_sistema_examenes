@@ -47,3 +47,7 @@ Thumbs.db
 ### Database ###
 *.mv.db
 *.trace.db
+
+### Agents & Markdown ###
+.agents/
+*.md
